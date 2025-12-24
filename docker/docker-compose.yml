@@ -2,27 +2,28 @@ version: '3.8'
 
 services:
   postgres:
-    image: postgres:15-alpine
-    container_name: trip-hub-postgres
+    image: postgres:14-alpine
+    container_name: group-travel-postgres
     environment:
-      POSTGRES_DB: trip_hub
+      POSTGRES_DB: group_travel
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
       timeout: 5s
       retries: 5
     networks:
-      - trip-hub-network
+      - group-travel-network
 
   redis:
     image: redis:7-alpine
-    container_name: trip-hub-redis
+    container_name: group-travel-redis
     ports:
       - "6379:6379"
     volumes:
@@ -34,7 +35,7 @@ services:
       timeout: 3s
       retries: 5
     networks:
-      - trip-hub-network
+      - group-travel-network
 
 volumes:
   postgres_data:
@@ -43,5 +44,5 @@ volumes:
     driver: local
 
 networks:
-  trip-hub-network:
+  group-travel-network:
     driver: bridge
