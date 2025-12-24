@@ -1,0 +1,448 @@
+// This is your Prisma schema file for the Group Trip Collaboration Hub
+// Learn more about Prisma: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// CORE DOMAIN: Users & Authentication
+// ============================================================================
+
+model User {
+  id                String    @id @default(cuid())
+  email             String    @unique
+  passwordHash      String
+  name              String
+  avatarUrl         String?
+  timezone          String    @default("UTC")
+
+  // Profile & Interests
+  bio               String?
+  interests         String[]  // Array of interest tags for MVP
+
+  // Timestamps
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  lastLoginAt       DateTime?
+  emailVerifiedAt   DateTime?
+
+  // Relations
+  memberships       GroupMember[]
+  createdGroups     Group[]           @relation("GroupCreator")
+  expenses          Expense[]
+  expenseSplits     ExpenseSplit[]
+  votes             Vote[]
+  itineraryItems    ItineraryItem[]   @relation("ItineraryCreator")
+  activityLogs      ActivityLog[]
+  invitations       Invitation[]      @relation("InvitationSender")
+  receivedInvites   Invitation[]      @relation("InvitationRecipient")
+
+  @@index([email])
+  @@index([createdAt])
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  token        String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  lastUsedAt   DateTime @default(now())
+  ipAddress    String?
+  userAgent    String?
+
+  @@index([token])
+  @@index([userId, expiresAt])
+  @@map("sessions")
+}
+
+// ============================================================================
+// CORE DOMAIN: Groups & Trips
+// ============================================================================
+
+model Group {
+  id              String        @id @default(cuid())
+  name            String
+  description     String?
+  imageUrl        String?
+  creatorId       String
+
+  // Settings
+  isPrivate       Boolean       @default(true)
+  settings        Json?         // Flexible settings object
+
+  // Timestamps
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  creator         User          @relation("GroupCreator", fields: [creatorId], references: [id], onDelete: Cascade)
+  members         GroupMember[]
+  trips           Trip[]
+  invitations     Invitation[]
+
+  @@index([creatorId])
+  @@index([createdAt])
+  @@map("groups")
+}
+
+enum GroupRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+model GroupMember {
+  id              String        @id @default(cuid())
+  groupId         String
+  userId          String
+  role            GroupRole     @default(MEMBER)
+
+  // Metadata
+  joinedAt        DateTime      @default(now())
+  invitedBy       String?
+
+  // Relations
+  group           Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([userId])
+  @@index([groupId, role])
+  @@map("group_members")
+}
+
+model Trip {
+  id                String              @id @default(cuid())
+  groupId           String
+  name              String
+  description       String?
+  destination       String?
+  imageUrl          String?
+
+  // Dates
+  startDate         DateTime?
+  endDate           DateTime?
+
+  // Budget
+  totalBudget       Decimal?            @db.Decimal(12, 2)
+  currency          String              @default("USD") // ISO 4217
+
+  // Status
+  status            TripStatus          @default(PLANNING)
+
+  // Timestamps
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  // Relations
+  group             Group               @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  polls             Poll[]
+  expenses          Expense[]
+  itinerary         ItineraryItem[]
+  activityLogs      ActivityLog[]
+
+  @@index([groupId])
+  @@index([status])
+  @@index([startDate])
+  @@map("trips")
+}
+
+enum TripStatus {
+  PLANNING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+// ============================================================================
+// FEATURE: Polling System
+// ============================================================================
+
+enum PollType {
+  PLACE
+  ACTIVITY
+  DATE
+  CUSTOM
+}
+
+enum PollStatus {
+  ACTIVE
+  CLOSED
+  ARCHIVED
+}
+
+model Poll {
+  id              String        @id @default(cuid())
+  tripId          String
+  title           String
+  description     String?
+  type            PollType
+  status          PollStatus    @default(ACTIVE)
+
+  // Settings
+  allowMultiple   Boolean       @default(false) // Allow voting for multiple options
+  maxVotes        Int?          // Max votes per user (null = unlimited within allowMultiple)
+  closesAt        DateTime?     // Auto-close deadline
+
+  // Timestamps
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  trip            Trip          @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  options         PollOption[]
+  votes           Vote[]
+
+  @@index([tripId, status])
+  @@index([closesAt])
+  @@map("polls")
+}
+
+model PollOption {
+  id              String        @id @default(cuid())
+  pollId          String
+  label           String
+  description     String?
+  metadata        Json?         // Flexible field for location coords, pricing, etc.
+  displayOrder    Int           @default(0)
+
+  // Relations
+  poll            Poll          @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  votes           Vote[]
+
+  @@index([pollId])
+  @@map("poll_options")
+}
+
+model Vote {
+  id              String        @id @default(cuid())
+  pollId          String
+  optionId        String
+  userId          String
+
+  // Timestamps
+  createdAt       DateTime      @default(now())
+
+  // Relations
+  poll            Poll          @relation(fields: [pollId], references: [id], onDelete: Cascade)
+  option          PollOption    @relation(fields: [optionId], references: [id], onDelete: Cascade)
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([pollId, optionId, userId]) // One vote per user per option (allows multiple if poll allows)
+  @@index([pollId])
+  @@index([userId])
+  @@map("votes")
+}
+
+// ============================================================================
+// FEATURE: Shared Itinerary
+// ============================================================================
+
+enum ItineraryItemType {
+  ACCOMMODATION
+  TRANSPORT
+  ACTIVITY
+  MEAL
+  CUSTOM
+}
+
+model ItineraryItem {
+  id              String              @id @default(cuid())
+  tripId          String
+  title           String
+  description     String?
+  type            ItineraryItemType
+
+  // Time & Location
+  startTime       DateTime
+  endTime         DateTime?
+  location        String?
+  coordinates     Json?               // { lat, lng }
+
+  // Metadata
+  cost            Decimal?            @db.Decimal(10, 2)
+  url             String?             // Booking link, etc.
+  notes           String?
+
+  // Attribution
+  createdBy       String
+
+  // Timestamps
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  // Relations
+  trip            Trip                @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  creator         User                @relation("ItineraryCreator", fields: [createdBy], references: [id])
+
+  @@index([tripId, startTime])
+  @@index([startTime])
+  @@map("itinerary_items")
+}
+
+// ============================================================================
+// FEATURE: Expense Tracking & Splitting (MVP PRIORITY)
+// ============================================================================
+
+enum ExpenseCategory {
+  ACCOMMODATION
+  TRANSPORT
+  FOOD
+  ACTIVITIES
+  SHOPPING
+  OTHER
+}
+
+model Expense {
+  id              String            @id @default(cuid())
+  tripId          String
+  title           String
+  description     String?
+  category        ExpenseCategory
+
+  // Financial
+  amount          Decimal           @db.Decimal(12, 2)
+  currency        String            @default("USD")
+
+  // Who paid
+  paidBy          String
+  paidAt          DateTime          @default(now())
+
+  // Receipt
+  receiptUrl      String?
+
+  // Timestamps
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  // Relations
+  trip            Trip              @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  payer           User              @relation(fields: [paidBy], references: [id])
+  splits          ExpenseSplit[]
+
+  @@index([tripId, paidAt])
+  @@index([paidBy])
+  @@map("expenses")
+}
+
+enum SplitType {
+  EQUAL        // Split equally among all participants
+  CUSTOM       // Custom amounts per person
+  PERCENTAGE   // Percentage-based (future)
+}
+
+model ExpenseSplit {
+  id              String      @id @default(cuid())
+  expenseId       String
+  userId          String
+
+  // Split details
+  splitType       SplitType   @default(EQUAL)
+  amount          Decimal     @db.Decimal(12, 2) // Amount this user owes
+  isPaid          Boolean     @default(false)
+
+  // Timestamps
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  paidAt          DateTime?
+
+  // Relations
+  expense         Expense     @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  user            User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([expenseId, userId])
+  @@index([userId, isPaid])
+  @@map("expense_splits")
+}
+
+// ============================================================================
+// FEATURE: Invitations
+// ============================================================================
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+model Invitation {
+  id              String            @id @default(cuid())
+  groupId         String
+  email           String
+  token           String            @unique
+
+  // Sender
+  sentBy          String
+
+  // Recipient (if they have an account)
+  recipientId     String?
+
+  // Status
+  status          InvitationStatus  @default(PENDING)
+  expiresAt       DateTime
+
+  // Timestamps
+  createdAt       DateTime          @default(now())
+  respondedAt     DateTime?
+
+  // Relations
+  group           Group             @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sender          User              @relation("InvitationSender", fields: [sentBy], references: [id])
+  recipient       User?             @relation("InvitationRecipient", fields: [recipientId], references: [id])
+
+  @@index([token])
+  @@index([email, status])
+  @@index([expiresAt])
+  @@map("invitations")
+}
+
+// ============================================================================
+// OBSERVABILITY: Activity Logs
+// ============================================================================
+
+enum ActivityType {
+  GROUP_CREATED
+  MEMBER_JOINED
+  MEMBER_LEFT
+  TRIP_CREATED
+  TRIP_UPDATED
+  POLL_CREATED
+  VOTE_CAST
+  EXPENSE_ADDED
+  EXPENSE_UPDATED
+  ITINERARY_ADDED
+  ITINERARY_UPDATED
+}
+
+model ActivityLog {
+  id              String        @id @default(cuid())
+  tripId          String?
+  userId          String
+  type            ActivityType
+
+  // Metadata
+  metadata        Json?         // Flexible event data
+
+  // Timestamp
+  createdAt       DateTime      @default(now())
+
+  // Relations
+  trip            Trip?         @relation(fields: [tripId], references: [id], onDelete: Cascade)
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tripId, createdAt])
+  @@index([userId, createdAt])
+  @@index([type, createdAt])
+  @@map("activity_logs")
+}
