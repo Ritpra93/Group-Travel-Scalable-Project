@@ -1,5 +1,5 @@
-import { db } from '../../config/kysely';
-import { createId } from '@paralleldrive/cuid2';
+import { GroupRole } from '@prisma/client';
+import { prisma } from '../../config/database';
 import { NotFoundError, ForbiddenError, ConflictError } from '../../common/utils/errors';
 import { canModifyMemberRole, canRemoveMember } from './groups.middleware';
 import type {
@@ -13,11 +13,8 @@ import type {
   GroupListQuery,
 } from './groups.types';
 
-type GroupRole = 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER';
-type ActivityType = 'GROUP_CREATED' | 'MEMBER_LEFT';
-
 /**
- * Groups Service (Kysely Version)
+ * Groups Service
  *
  * Handles business logic for group management:
  * - Creating and managing groups
@@ -37,57 +34,40 @@ export class GroupsService {
    */
   async createGroup(userId: string, data: CreateGroupInput): Promise<GroupResponse> {
     // Use transaction to ensure group creation and owner membership are atomic
-    const result = await db.transaction().execute(async (trx) => {
+    const result = await prisma.$transaction(async (tx) => {
       // Create the group
-      const group = await trx
-        .insertInto('groups')
-        .values({
-          id: createId(),
+      const group = await tx.group.create({
+        data: {
           name: data.name,
           description: data.description || null,
           imageUrl: data.imageUrl || null,
           isPrivate: data.isPrivate ?? true,
-          settings: data.settings ? JSON.stringify(data.settings) : '{}',
+          settings: data.settings || {},
           creatorId: userId,
-          updatedAt: new Date(),
-        })
-        .returning([
-          'id',
-          'name',
-          'description',
-          'imageUrl',
-          'isPrivate',
-          'creatorId',
-          'createdAt',
-          'updatedAt',
-        ])
-        .executeTakeFirstOrThrow();
+        },
+      });
 
       // Add creator as OWNER
-      await trx
-        .insertInto('group_members')
-        .values({
-          id: createId(),
+      await tx.groupMember.create({
+        data: {
           groupId: group.id,
           userId: userId,
-          role: 'OWNER',
-          invitedBy: null,
-        })
-        .execute();
+          role: GroupRole.OWNER,
+          invitedBy: null, // Creator wasn't invited
+        },
+      });
 
       // Log activity
-      await trx
-        .insertInto('activity_logs')
-        .values({
-          id: createId(),
+      await tx.activityLog.create({
+        data: {
           userId: userId,
           type: 'GROUP_CREATED',
-          metadata: JSON.stringify({
+          metadata: {
             groupId: group.id,
             groupName: group.name,
-          }),
-        })
-        .execute();
+          },
+        },
+      });
 
       return group;
     });
@@ -103,7 +83,7 @@ export class GroupsService {
       createdAt: result.createdAt,
       updatedAt: result.updatedAt,
       memberCount: 1, // Just the owner
-      userRole: 'OWNER' as GroupRole,
+      userRole: GroupRole.OWNER,
     };
   }
 
@@ -117,32 +97,28 @@ export class GroupsService {
    * @throws ForbiddenError if user is not a member and group is private
    */
   async getGroup(groupId: string, userId: string): Promise<GroupResponse> {
-    const group = await db
-      .selectFrom('groups')
-      .selectAll()
-      .where('id', '=', groupId)
-      .executeTakeFirst();
+    const group = await prisma.group.findUnique({
+      where: { id: groupId },
+      include: {
+        _count: {
+          select: { members: true },
+        },
+      },
+    });
 
     if (!group) {
       throw new NotFoundError('Group not found');
     }
 
-    // Count members
-    const memberCountResult = await db
-      .selectFrom('group_members')
-      .select((eb) => eb.fn.count<number>('id').as('count'))
-      .where('groupId', '=', groupId)
-      .executeTakeFirst();
-
-    const memberCount = Number(memberCountResult?.count || 0);
-
     // Find user's membership
-    const membership = await db
-      .selectFrom('group_members')
-      .selectAll()
-      .where('groupId', '=', groupId)
-      .where('userId', '=', userId)
-      .executeTakeFirst();
+    const membership = await prisma.groupMember.findUnique({
+      where: {
+        groupId_userId: {
+          groupId: group.id,
+          userId: userId,
+        },
+      },
+    });
 
     // Private groups require membership
     if (group.isPrivate && !membership) {
@@ -158,8 +134,8 @@ export class GroupsService {
       creatorId: group.creatorId,
       createdAt: group.createdAt,
       updatedAt: group.updatedAt,
-      memberCount,
-      userRole: membership?.role as GroupRole | undefined,
+      memberCount: group._count.members,
+      userRole: membership?.role,
     };
   }
 
@@ -178,64 +154,49 @@ export class GroupsService {
     // Calculate offset for pagination
     const offset = (page - 1) * limit;
 
-    // Build base query - groups where user is a member
-    let groupsQuery = db
-      .selectFrom('groups as g')
-      .innerJoin('group_members as gm', 'gm.groupId', 'g.id')
-      .where('gm.userId', '=', userId);
+    // Build where clause
+    const where: any = {
+      members: {
+        some: {
+          userId: userId,
+        },
+      },
+    };
 
     // Add search filter
     if (search) {
-      groupsQuery = groupsQuery.where((eb) =>
-        eb.or([
-          eb('g.name', 'ilike', `%${search}%`),
-          eb('g.description', 'ilike', `%${search}%`),
-        ])
-      );
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
     }
 
     // Add privacy filter
     if (isPrivate !== undefined) {
-      groupsQuery = groupsQuery.where('g.isPrivate', '=', isPrivate);
+      where.isPrivate = isPrivate;
     }
 
-    // Get total count
-    const countResult = await groupsQuery
-      .select((eb) => eb.fn.count<number>('g.id').as('total'))
-      .executeTakeFirst();
-
-    const total = Number(countResult?.total || 0);
-
-    // Get paginated groups with member counts
-    const groups = await groupsQuery
-      .select([
-        'g.id',
-        'g.name',
-        'g.description',
-        'g.imageUrl',
-        'g.isPrivate',
-        'g.creatorId',
-        'g.createdAt',
-        'g.updatedAt',
-        'gm.role as userRole',
-      ])
-      .orderBy(`g.${sortBy}`, sortOrder)
-      .limit(limit)
-      .offset(offset)
-      .execute();
-
-    // Get member counts for each group
-    const groupIds = groups.map((g) => g.id);
-    const memberCounts = groupIds.length
-      ? await db
-          .selectFrom('group_members')
-          .select(['groupId', (eb) => eb.fn.count<number>('id').as('count')])
-          .where('groupId', 'in', groupIds)
-          .groupBy('groupId')
-          .execute()
-      : [];
-
-    const memberCountMap = new Map(memberCounts.map((mc) => [mc.groupId, Number(mc.count)]));
+    // Execute queries in parallel
+    const [groups, total] = await Promise.all([
+      prisma.group.findMany({
+        where,
+        skip: offset,
+        take: limit,
+        orderBy: {
+          [sortBy]: sortOrder,
+        },
+        include: {
+          _count: {
+            select: { members: true },
+          },
+          members: {
+            where: { userId: userId },
+            select: { role: true },
+          },
+        },
+      }),
+      prisma.group.count({ where }),
+    ]);
 
     // Map to response format
     const data: GroupResponse[] = groups.map((group) => ({
@@ -247,8 +208,8 @@ export class GroupsService {
       creatorId: group.creatorId,
       createdAt: group.createdAt,
       updatedAt: group.updatedAt,
-      memberCount: memberCountMap.get(group.id) || 0,
-      userRole: group.userRole as GroupRole,
+      memberCount: group._count.members,
+      userRole: group.members[0]?.role, // User's role (we filtered for this user)
     }));
 
     // Calculate pagination metadata
@@ -282,43 +243,28 @@ export class GroupsService {
     // Verify membership and role
     const membership = await this.getUserMembership(groupId, userId);
 
-    if (!membership || (membership.role !== 'OWNER' && membership.role !== 'ADMIN')) {
+    if (!membership || (membership.role !== GroupRole.OWNER && membership.role !== GroupRole.ADMIN)) {
       throw new ForbiddenError('Only group admins and owners can update the group');
     }
 
     // Build update data (only include provided fields)
-    const updateData: any = { updatedAt: new Date() };
+    const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.description !== undefined) updateData.description = data.description;
     if (data.imageUrl !== undefined) updateData.imageUrl = data.imageUrl;
     if (data.isPrivate !== undefined) updateData.isPrivate = data.isPrivate;
-    if (data.settings !== undefined) updateData.settings = JSON.stringify(data.settings);
+    if (data.settings !== undefined) updateData.settings = data.settings;
 
     // Update group
-    const group = await db
-      .updateTable('groups')
-      .set(updateData)
-      .where('id', '=', groupId)
-      .returning([
-        'id',
-        'name',
-        'description',
-        'imageUrl',
-        'isPrivate',
-        'creatorId',
-        'createdAt',
-        'updatedAt',
-      ])
-      .executeTakeFirstOrThrow();
-
-    // Get member count
-    const memberCountResult = await db
-      .selectFrom('group_members')
-      .select((eb) => eb.fn.count<number>('id').as('count'))
-      .where('groupId', '=', groupId)
-      .executeTakeFirst();
-
-    const memberCount = Number(memberCountResult?.count || 0);
+    const group = await prisma.group.update({
+      where: { id: groupId },
+      data: updateData,
+      include: {
+        _count: {
+          select: { members: true },
+        },
+      },
+    });
 
     return {
       id: group.id,
@@ -329,8 +275,8 @@ export class GroupsService {
       creatorId: group.creatorId,
       createdAt: group.createdAt,
       updatedAt: group.updatedAt,
-      memberCount,
-      userRole: membership.role as GroupRole,
+      memberCount: group._count.members,
+      userRole: membership.role,
     };
   }
 
@@ -338,7 +284,7 @@ export class GroupsService {
    * Delete a group
    *
    * Only the OWNER can delete a group.
-   * Cascade deletes all related data (members, trips, etc.) due to database constraints.
+   * Cascade deletes all related data (members, trips, etc.) due to Prisma schema.
    *
    * @param groupId - Group ID
    * @param userId - User requesting deletion
@@ -348,11 +294,13 @@ export class GroupsService {
   async deleteGroup(groupId: string, userId: string): Promise<void> {
     const membership = await this.getUserMembership(groupId, userId);
 
-    if (!membership || membership.role !== 'OWNER') {
+    if (!membership || membership.role !== GroupRole.OWNER) {
       throw new ForbiddenError('Only the group owner can delete the group');
     }
 
-    await db.deleteFrom('groups').where('id', '=', groupId).execute();
+    await prisma.group.delete({
+      where: { id: groupId },
+    });
   }
 
   /**
@@ -371,35 +319,30 @@ export class GroupsService {
       throw new ForbiddenError('You are not a member of this group');
     }
 
-    const members = await db
-      .selectFrom('group_members as gm')
-      .innerJoin('users as u', 'u.id', 'gm.userId')
-      .select([
-        'gm.id',
-        'gm.userId',
-        'gm.role',
-        'gm.joinedAt',
-        'u.id as user_id',
-        'u.name as user_name',
-        'u.email as user_email',
-        'u.avatarUrl as user_avatarUrl',
-      ])
-      .where('gm.groupId', '=', groupId)
-      .orderBy('gm.role', 'asc') // OWNER first
-      .orderBy('gm.joinedAt', 'asc')
-      .execute();
+    const members = await prisma.groupMember.findMany({
+      where: { groupId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+      },
+      orderBy: [
+        { role: 'asc' }, // OWNER first, then ADMIN, MEMBER, VIEWER
+        { joinedAt: 'asc' },
+      ],
+    });
 
     return members.map((member) => ({
       id: member.id,
       userId: member.userId,
-      role: member.role as GroupRole,
+      role: member.role,
       joinedAt: member.joinedAt,
-      user: {
-        id: member.user_id,
-        name: member.user_name,
-        email: member.user_email,
-        avatarUrl: member.user_avatarUrl,
-      },
+      user: member.user,
     }));
   }
 
@@ -440,45 +383,32 @@ export class GroupsService {
     }
 
     // Check permission using helper
-    if (!canModifyMemberRole(requestingMember.role as GroupRole, targetMember.role as GroupRole, data.role)) {
-      throw new ForbiddenError("You do not have permission to change this member's role");
+    if (!canModifyMemberRole(requestingMember.role, targetMember.role, data.role)) {
+      throw new ForbiddenError('You do not have permission to change this member\'s role');
     }
 
     // Update role
-    await db
-      .updateTable('group_members')
-      .set({ role: data.role })
-      .where('id', '=', targetMember.id)
-      .execute();
-
-    // Get updated member with user details
-    const updated = await db
-      .selectFrom('group_members as gm')
-      .innerJoin('users as u', 'u.id', 'gm.userId')
-      .select([
-        'gm.id',
-        'gm.userId',
-        'gm.role',
-        'gm.joinedAt',
-        'u.id as user_id',
-        'u.name as user_name',
-        'u.email as user_email',
-        'u.avatarUrl as user_avatarUrl',
-      ])
-      .where('gm.id', '=', targetMember.id)
-      .executeTakeFirstOrThrow();
+    const updated = await prisma.groupMember.update({
+      where: { id: targetMember.id },
+      data: { role: data.role },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            avatarUrl: true,
+          },
+        },
+      },
+    });
 
     return {
       id: updated.id,
       userId: updated.userId,
-      role: updated.role as GroupRole,
+      role: updated.role,
       joinedAt: updated.joinedAt,
-      user: {
-        id: updated.user_id,
-        name: updated.user_name,
-        email: updated.user_email,
-        avatarUrl: updated.user_avatarUrl,
-      },
+      user: updated.user,
     };
   }
 
@@ -512,41 +442,31 @@ export class GroupsService {
     }
 
     // Check permission using helper
-    if (
-      !canRemoveMember(
-        requestingMember.role as GroupRole,
-        requestingUserId,
-        targetUserId,
-        targetMember.role as GroupRole
-      )
-    ) {
+    if (!canRemoveMember(requestingMember.role, requestingUserId, targetUserId, targetMember.role)) {
       throw new ForbiddenError('You do not have permission to remove this member');
     }
 
     // Special case: Owner trying to leave
-    if (targetMember.role === 'OWNER' && requestingUserId === targetUserId) {
-      throw new ForbiddenError(
-        'Group owner cannot leave the group. Please delete the group or transfer ownership first.'
-      );
+    if (targetMember.role === GroupRole.OWNER && requestingUserId === targetUserId) {
+      throw new ForbiddenError('Group owner cannot leave the group. Please delete the group or transfer ownership first.');
     }
 
-    // Delete member
-    await db.deleteFrom('group_members').where('id', '=', targetMember.id).execute();
+    await prisma.groupMember.delete({
+      where: { id: targetMember.id },
+    });
 
     // Log activity
-    await db
-      .insertInto('activity_logs')
-      .values({
-        id: createId(),
+    await prisma.activityLog.create({
+      data: {
         userId: requestingUserId,
         type: 'MEMBER_LEFT',
-        metadata: JSON.stringify({
+        metadata: {
           groupId: groupId,
           removedUserId: targetUserId,
           wasRemoved: requestingUserId !== targetUserId,
-        }),
-      })
-      .execute();
+        },
+      },
+    });
   }
 
   /**
@@ -558,12 +478,14 @@ export class GroupsService {
    * @private
    */
   private async getUserMembership(groupId: string, userId: string) {
-    return db
-      .selectFrom('group_members')
-      .selectAll()
-      .where('groupId', '=', groupId)
-      .where('userId', '=', userId)
-      .executeTakeFirst();
+    return prisma.groupMember.findUnique({
+      where: {
+        groupId_userId: {
+          groupId,
+          userId,
+        },
+      },
+    });
   }
 }
 

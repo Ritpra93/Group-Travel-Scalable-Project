@@ -11,6 +11,7 @@ import { authenticate } from './middleware/auth.middleware';
 // Import routes
 import authRoutes from './modules/auth/auth.routes';
 import groupRoutes from './modules/groups/groups.routes';
+import invitationsRoutes from './modules/invitations/invitations.routes';
 
 /**
  * Create and configure Express application
@@ -114,6 +115,7 @@ export function createApp(): Application {
 
   // Protected routes (require authentication)
   app.use('/api/v1/groups', groupRoutes);
+  app.use('/api/v1/invitations', invitationsRoutes);
 
   // Additional protected routes will be added here
   // Example:

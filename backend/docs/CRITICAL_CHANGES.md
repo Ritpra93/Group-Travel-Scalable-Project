@@ -50,7 +50,8 @@ When Prisma fixes the P1010 bug (likely in Prisma 8.x or newer PostgreSQL driver
    - `src/config/kysely.ts` (new file - DELETE when migrating back)
    - `src/config/database.types.ts` (new file - DELETE when migrating back)
    - `src/modules/auth/auth.service.ts` (✅ MIGRATED - uses Kysely + cuid2 for ID generation)
-   - `src/modules/groups/groups.service.ts` (⏳ TODO - still uses Prisma)
+   - `src/modules/groups/groups.service.ts` (✅ MIGRATED - uses Kysely + cuid2 for ID generation)
+   - `src/modules/invitations/invitations.service.ts` (✅ BUILT WITH KYSELY - uses Kysely from the start)
    - `src/app.ts` (✅ MIGRATED - health check uses Kysely)
    - Any future service files created during Kysely period
 
@@ -186,7 +187,7 @@ More steps than `prisma migrate dev`, but necessary workaround.
 
 ---
 
-## ✅ Migration Status (Updated: Dec 24, 2025 18:15 PST)
+## ✅ Migration Status (Updated: Dec 25, 2025 17:23 PST)
 
 ### Completed
 - ✅ Environment files updated to port 5433
@@ -195,11 +196,32 @@ More steps than `prisma migrate dev`, but necessary workaround.
 - ✅ Health check endpoint migrated to Kysely
 - ✅ Auth service fully migrated to Kysely (register, login, logout, refresh)
 - ✅ All auth endpoints tested and working
+- ✅ **Groups service migrated to Kysely**
+  - Converted all Prisma queries to Kysely
+  - Original backed up as groups.service.prisma.backup.ts
+  - All endpoints tested successfully
+- ✅ **Invitations module implemented with Kysely from the start**
+  - invitations.types.ts (Zod schemas + TypeScript types)
+  - invitations.utils.ts (Token generation, URL creation, validation helpers)
+  - invitations.service.ts (Business logic with Kysely queries)
+  - invitations.controller.ts (HTTP handlers)
+  - invitations.routes.ts (Express routes with authentication)
+  - Routes registered in app.ts
+  - **All endpoints tested end-to-end successfully**
+
+### Critical Fixes Applied
+- ✅ Fixed invitations.controller.ts to use `req.user.id` instead of `req.user.userId`
+  - Root cause: auth middleware sets `req.user` to the entire user object (which has `id` field)
+  - Fixed in all 6 controller methods
+- ✅ Fixed invitations.service.ts listInvitations query
+  - Root cause: SQL GROUP BY error when adding count to query with non-aggregated columns
+  - Solution: Build separate count query from base query
+- ✅ Changed all Zod `.cuid()` validators to `.min(20)` in invitations.types.ts
+  - Root cause: Kysely uses CUID2 format (via @paralleldrive/cuid2) incompatible with Zod's `.cuid()` validator
+  - CUID2 IDs are 24-25 characters vs CUID1's 25 characters
 
 ### Pending
-- ⏳ Groups service migration to Kysely
-- ⏳ Invitations module implementation (will use Kysely from start)
-- ⏳ Future modules (all will use Kysely)
+- ⏳ Future modules: Trips, Expenses, Itinerary, Polls (all will use Kysely)
 
 ### Testing Results
 All authentication endpoints tested successfully with Kysely:
@@ -208,8 +230,20 @@ All authentication endpoints tested successfully with Kysely:
 - ✅ POST `/api/v1/auth/refresh` - Token refresh with session update
 - ✅ POST `/api/v1/auth/logout` - Logout with session deletion
 
+All groups endpoints tested successfully with Kysely:
+- ✅ POST `/api/v1/groups` - Create group with automatic owner membership
+- ✅ GET `/api/v1/groups/:id/members` - List group members with user details
+
+All invitations endpoints tested successfully with Kysely:
+- ✅ POST `/api/v1/invitations` - Send invitation (creates invitation with token)
+- ✅ POST `/api/v1/invitations/respond` - Accept invitation (creates group membership) ✅ Decline invitation (updates status)
+- ✅ GET `/api/v1/invitations/sent` - List sent invitations with group and sender details
+- ✅ GET `/api/v1/invitations/received` - List received invitations by email or recipientId
+- ✅ POST `/api/v1/invitations/:id/resend` - Resend invitation (generates new token, extends expiry)
+- ✅ DELETE `/api/v1/invitations/:id` - Cancel invitation (soft delete by updating status)
+
 ---
 
-**Last Updated**: December 24, 2025
+**Last Updated**: December 25, 2025
 **Review Date**: Before production deployment
 **Owner**: Backend Team
