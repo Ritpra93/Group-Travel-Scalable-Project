@@ -187,7 +187,7 @@ More steps than `prisma migrate dev`, but necessary workaround.
 
 ---
 
-## ✅ Migration Status (Updated: Dec 25, 2025 17:23 PST)
+## ✅ Migration Status (Updated: Dec 25, 2025 23:50 PST)
 
 ### Completed
 - ✅ Environment files updated to port 5433
@@ -208,6 +208,14 @@ More steps than `prisma migrate dev`, but necessary workaround.
   - invitations.routes.ts (Express routes with authentication)
   - Routes registered in app.ts
   - **All endpoints tested end-to-end successfully**
+- ✅ **Trips module implemented with Kysely from the start**
+  - trips.types.ts (Zod schemas + TypeScript types for CRUD operations)
+  - trips.middleware.ts (Permission helpers for role-based access)
+  - trips.service.ts (Business logic with Kysely queries and transactions)
+  - trips.controller.ts (HTTP handlers for 6 endpoints)
+  - trips.routes.ts (Express routes with authentication)
+  - Routes registered in app.ts
+  - **All endpoints tested successfully**
 
 ### Critical Fixes Applied
 - ✅ Fixed invitations.controller.ts to use `req.user.id` instead of `req.user.userId`
@@ -219,9 +227,14 @@ More steps than `prisma migrate dev`, but necessary workaround.
 - ✅ Changed all Zod `.cuid()` validators to `.min(20)` in invitations.types.ts
   - Root cause: Kysely uses CUID2 format (via @paralleldrive/cuid2) incompatible with Zod's `.cuid()` validator
   - CUID2 IDs are 24-25 characters vs CUID1's 25 characters
+- ✅ **Updated ActivityType enum in Prisma schema and database**
+  - Added: `TRIP_DELETED` and `TRIP_STATUS_CHANGED` to ActivityType enum
+  - Required for trips.service.ts activity logging
+  - Applied via direct SQL: `ALTER TYPE "ActivityType" ADD VALUE ...`
+  - Regenerated Kysely types with `npx prisma-kysely`
 
 ### Pending
-- ⏳ Future modules: Trips, Expenses, Itinerary, Polls (all will use Kysely)
+- ⏳ Future modules: Expenses, Itinerary, Polls (all will use Kysely)
 
 ### Testing Results
 All authentication endpoints tested successfully with Kysely:
@@ -241,6 +254,13 @@ All invitations endpoints tested successfully with Kysely:
 - ✅ GET `/api/v1/invitations/received` - List received invitations by email or recipientId
 - ✅ POST `/api/v1/invitations/:id/resend` - Resend invitation (generates new token, extends expiry)
 - ✅ DELETE `/api/v1/invitations/:id` - Cancel invitation (soft delete by updating status)
+
+All trips endpoints tested successfully with Kysely:
+- ✅ POST `/api/v1/trips` - Create trip (with transaction + activity logging)
+- ✅ GET `/api/v1/trips/:id` - Get trip details (with group info and counts)
+- ✅ GET `/api/v1/trips` - List trips (paginated with filters and sorting)
+- ✅ PUT `/api/v1/trips/:id` - Update trip (partial updates with permission checks)
+- ✅ DELETE `/api/v1/trips/:id` - Delete trip (with transaction + activity logging after enum fix)
 
 ---
 
