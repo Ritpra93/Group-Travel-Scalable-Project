@@ -224,6 +224,14 @@ More steps than `prisma migrate dev`, but necessary workaround.
   - polls.routes.ts (Two routers: main polls routes + trip-scoped routes with mergeParams)
   - Routes registered in app.ts
   - **All endpoints tested successfully including voting logic**
+- ✅ **Expenses module implemented with Kysely from the start**
+  - expenses.types.ts (Zod schemas + TypeScript types with split validation refinements)
+  - expenses.middleware.ts (Permission helpers for role-based access)
+  - expenses.service.ts (Business logic with Kysely queries, transactions, split calculations, and balance aggregation)
+  - expenses.controller.ts (HTTP handlers for 7 endpoints)
+  - expenses.routes.ts (Two routers: main expense CRUD + trip-scoped routes with mergeParams)
+  - Routes registered in app.ts
+  - **All endpoints tested successfully including EQUAL and CUSTOM splits**
 
 ### Critical Fixes Applied
 - ✅ Fixed invitations.controller.ts to use `req.user.id` instead of `req.user.userId`
@@ -250,7 +258,7 @@ More steps than `prisma migrate dev`, but necessary workaround.
   - Solution: Create router with `Router({ mergeParams: true })` to inherit parent params
 
 ### Pending
-- ⏳ Future modules: Expenses, Itinerary (all will use Kysely)
+- ⏳ Future modules: Itinerary (all will use Kysely)
 
 ### Testing Results
 All authentication endpoints tested successfully with Kysely:
@@ -292,6 +300,18 @@ All polls endpoints tested successfully with Kysely:
 - ✅ GET `/api/v1/polls/:id/my-votes` - Get user's votes (returns optionIds array)
 - ✅ **Voting validation tested**: Cannot vote on CLOSED polls, maxVotes limit enforced
 - ✅ **Multi-choice polls tested**: allowMultiple=true with maxVotes=3 working correctly
+
+All expenses endpoints tested successfully with Kysely:
+- ✅ POST `/api/v1/expenses` - Create expense (with transaction: expense + splits + activity log)
+- ✅ GET `/api/v1/expenses/:id` - Get expense (with splits and payer details)
+- ✅ GET `/api/v1/trips/:tripId/expenses` - List expenses for trip (paginated with filters)
+- ✅ PUT `/api/v1/expenses/:id` - Update expense (title, description, category, amount with permission checks)
+- ✅ DELETE `/api/v1/expenses/:id` - Delete expense (cascades to splits)
+- ✅ PATCH `/api/v1/expenses/:id/splits/:splitId` - Mark split as paid (sets isPaid and paidAt timestamp)
+- ✅ GET `/api/v1/trips/:tripId/expenses/balances` - Get user balances (totalPaid - totalOwed per user)
+- ✅ **EQUAL split tested**: $450 split equally among users with proper rounding
+- ✅ **CUSTOM split tested**: $60 with custom amounts, validation enforces sum equals total
+- ✅ **Decimal handling tested**: JavaScript number → .toString() for DB → string in response
 
 ---
 
