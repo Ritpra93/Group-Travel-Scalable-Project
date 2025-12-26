@@ -14,6 +14,7 @@ import groupRoutes from './modules/groups/groups.routes';
 import invitationsRoutes from './modules/invitations/invitations.routes';
 import tripRoutes from './modules/trips/trips.routes';
 import pollRoutes, { tripPollsRouter } from './modules/polls/polls.routes';
+import expenseRoutes, { tripExpensesRouter } from './modules/expenses/expenses.routes';
 
 /**
  * Create and configure Express application
@@ -120,13 +121,11 @@ export function createApp(): Application {
   app.use('/api/v1/invitations', invitationsRoutes);
   app.use('/api/v1/trips', tripRoutes);
   app.use('/api/v1/polls', pollRoutes);
+  app.use('/api/v1/expenses', expenseRoutes);
 
   // Trip-scoped routes
   app.use('/api/v1/trips/:tripId/polls', tripPollsRouter);
-
-  // Additional protected routes will be added here
-  // Example:
-  // app.use('/api/v1/expenses', expensesRoutes);
+  app.use('/api/v1/trips/:tripId/expenses', tripExpensesRouter);
 
   // ============================================================================
   // Error Handling
