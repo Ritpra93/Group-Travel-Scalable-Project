@@ -232,6 +232,14 @@ More steps than `prisma migrate dev`, but necessary workaround.
   - expenses.routes.ts (Two routers: main expense CRUD + trip-scoped routes with mergeParams)
   - Routes registered in app.ts
   - **All endpoints tested successfully including EQUAL and CUSTOM splits**
+- ✅ **Itinerary module implemented with Kysely from the start**
+  - itinerary.types.ts (Zod schemas + TypeScript types with DateTime validation and coordinates handling)
+  - itinerary.middleware.ts (Permission helpers for role-based access)
+  - itinerary.service.ts (Business logic with Kysely queries, transactions, time-range filtering)
+  - itinerary.controller.ts (HTTP handlers for 5 endpoints)
+  - itinerary.routes.ts (Trip-scoped router with mergeParams)
+  - Routes registered in app.ts
+  - **All endpoints tested successfully including JSON coordinates and Decimal cost**
 
 ### Critical Fixes Applied
 - ✅ Fixed invitations.controller.ts to use `req.user.id` instead of `req.user.userId`
@@ -258,7 +266,7 @@ More steps than `prisma migrate dev`, but necessary workaround.
   - Solution: Create router with `Router({ mergeParams: true })` to inherit parent params
 
 ### Pending
-- ⏳ Future modules: Itinerary (all will use Kysely)
+- ✅ All core modules completed with Kysely
 
 ### Testing Results
 All authentication endpoints tested successfully with Kysely:
@@ -312,6 +320,18 @@ All expenses endpoints tested successfully with Kysely:
 - ✅ **EQUAL split tested**: $450 split equally among users with proper rounding
 - ✅ **CUSTOM split tested**: $60 with custom amounts, validation enforces sum equals total
 - ✅ **Decimal handling tested**: JavaScript number → .toString() for DB → string in response
+
+All itinerary endpoints tested successfully with Kysely:
+- ✅ POST `/api/v1/trips/:tripId/itinerary` - Create itinerary item (with transaction + activity log)
+- ✅ GET `/api/v1/trips/:tripId/itinerary/:itemId` - Get itinerary item (with creator and trip details)
+- ✅ GET `/api/v1/trips/:tripId/itinerary` - List itinerary items (paginated, chronological sorting by startTime)
+- ✅ PUT `/api/v1/trips/:tripId/itinerary/:itemId` - Update itinerary item (with permission checks and time validation)
+- ✅ DELETE `/api/v1/trips/:tripId/itinerary/:itemId` - Delete itinerary item
+- ✅ **Full item creation tested**: All fields including coordinates {lat, lng} and cost preserved correctly
+- ✅ **Minimal item creation tested**: Only required fields (title, type, startTime) working correctly
+- ✅ **JSON coordinates tested**: Kysely auto-parses JSON columns, no manual JSON.parse() needed
+- ✅ **DateTime validation tested**: endTime > startTime validation working correctly
+- ✅ **Decimal cost tested**: JavaScript number → .toString() for DB → string in response
 
 ---
 
