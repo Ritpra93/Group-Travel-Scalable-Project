@@ -13,6 +13,7 @@ import authRoutes from './modules/auth/auth.routes';
 import groupRoutes from './modules/groups/groups.routes';
 import invitationsRoutes from './modules/invitations/invitations.routes';
 import tripRoutes from './modules/trips/trips.routes';
+import pollRoutes, { tripPollsRouter } from './modules/polls/polls.routes';
 
 /**
  * Create and configure Express application
@@ -118,6 +119,10 @@ export function createApp(): Application {
   app.use('/api/v1/groups', groupRoutes);
   app.use('/api/v1/invitations', invitationsRoutes);
   app.use('/api/v1/trips', tripRoutes);
+  app.use('/api/v1/polls', pollRoutes);
+
+  // Trip-scoped routes
+  app.use('/api/v1/trips/:tripId/polls', tripPollsRouter);
 
   // Additional protected routes will be added here
   // Example:

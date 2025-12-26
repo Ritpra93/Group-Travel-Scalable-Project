@@ -216,6 +216,14 @@ More steps than `prisma migrate dev`, but necessary workaround.
   - trips.routes.ts (Express routes with authentication)
   - Routes registered in app.ts
   - **All endpoints tested successfully**
+- ✅ **Polls module implemented with Kysely from the start**
+  - polls.types.ts (Zod schemas + TypeScript types with validation refinements)
+  - polls.middleware.ts (Permission helpers for role-based access and status transitions)
+  - polls.service.ts (Business logic with Kysely queries, transactions, and vote counting)
+  - polls.controller.ts (HTTP handlers for 11 endpoints)
+  - polls.routes.ts (Two routers: main polls routes + trip-scoped routes with mergeParams)
+  - Routes registered in app.ts
+  - **All endpoints tested successfully including voting logic**
 
 ### Critical Fixes Applied
 - ✅ Fixed invitations.controller.ts to use `req.user.id` instead of `req.user.userId`
@@ -232,9 +240,17 @@ More steps than `prisma migrate dev`, but necessary workaround.
   - Required for trips.service.ts activity logging
   - Applied via direct SQL: `ALTER TYPE "ActivityType" ADD VALUE ...`
   - Regenerated Kysely types with `npx prisma-kysely`
+- ✅ **Fixed polls.service.ts metadata JSON parsing**
+  - Root cause: PostgreSQL JSONB columns are automatically parsed by Kysely driver
+  - Problem: Code was calling `JSON.parse()` on already-parsed objects
+  - Solution: Remove `JSON.parse()` calls for metadata fields - use values directly
+- ✅ **Fixed polls.routes.ts tripPollsRouter parameter passing**
+  - Root cause: Nested routers don't inherit params from parent by default
+  - Problem: `:tripId` from parent route `/api/v1/trips/:tripId/polls` not accessible
+  - Solution: Create router with `Router({ mergeParams: true })` to inherit parent params
 
 ### Pending
-- ⏳ Future modules: Expenses, Itinerary, Polls (all will use Kysely)
+- ⏳ Future modules: Expenses, Itinerary (all will use Kysely)
 
 ### Testing Results
 All authentication endpoints tested successfully with Kysely:
@@ -262,8 +278,23 @@ All trips endpoints tested successfully with Kysely:
 - ✅ PUT `/api/v1/trips/:id` - Update trip (partial updates with permission checks)
 - ✅ DELETE `/api/v1/trips/:id` - Delete trip (with transaction + activity logging after enum fix)
 
+All polls endpoints tested successfully with Kysely:
+- ✅ POST `/api/v1/polls` - Create poll (with transaction: poll + options + activity log)
+- ✅ GET `/api/v1/polls/:id` - Get poll (with vote counts and user's votes marked)
+- ✅ GET `/api/v1/trips/:tripId/polls` - List polls for trip (paginated with filters)
+- ✅ PUT `/api/v1/polls/:id` - Update poll (title, description, closesAt with validation)
+- ✅ PATCH `/api/v1/polls/:id/close` - Close poll (status transition validation)
+- ✅ DELETE `/api/v1/polls/:id` - Delete poll (cascades to options and votes)
+- ✅ POST `/api/v1/polls/:id/vote` - Cast vote (with duplicate and maxVotes validation)
+- ✅ PUT `/api/v1/polls/:id/vote` - Change vote (atomic delete old + insert new)
+- ✅ DELETE `/api/v1/polls/:id/vote/:optionId` - Remove vote
+- ✅ GET `/api/v1/polls/:id/results` - Get results (aggregated vote counts per option)
+- ✅ GET `/api/v1/polls/:id/my-votes` - Get user's votes (returns optionIds array)
+- ✅ **Voting validation tested**: Cannot vote on CLOSED polls, maxVotes limit enforced
+- ✅ **Multi-choice polls tested**: allowMultiple=true with maxVotes=3 working correctly
+
 ---
 
-**Last Updated**: December 25, 2025
+**Last Updated**: December 26, 2025
 **Review Date**: Before production deployment
 **Owner**: Backend Team
