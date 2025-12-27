@@ -8,10 +8,7 @@ import { cn } from '@/lib/utils/cn';
 
 const navLinks = [
   { href: '/', label: 'Home' },
-  { href: '/destinations', label: 'Destinations' },
-  { href: '/gallery', label: 'Gallery' },
-  { href: '/packages', label: 'Travel Packages' },
-  { href: '/about', label: 'About' },
+  { href: '/login', label: 'Sign In' },
 ];
 
 export function Navigation() {
@@ -90,7 +87,7 @@ export function Navigation() {
 
               {/* Get Started Button */}
               <Link
-                href="/auth/signup"
+                href="/register"
                 className="hidden rounded-full bg-gradient-to-r from-[var(--color-sky-blue)] to-[var(--color-sunset-orange)] px-6 py-2.5 text-sm font-semibold text-white transition-all duration-300 hover:shadow-lg hover:shadow-sky-500/50 lg:block"
               >
                 Get Started
@@ -145,7 +142,7 @@ export function Navigation() {
                   English
                 </button>
                 <Link
-                  href="/auth/signup"
+                  href="/register"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="rounded-full bg-gradient-to-r from-[var(--color-sky-blue)] to-[var(--color-sunset-orange)] px-6 py-3 text-center text-sm font-semibold text-white"
                 >

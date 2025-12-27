@@ -3,8 +3,11 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 export function Hero() {
+  const router = useRouter();
+
   const scrollToContent = () => {
     window.scrollTo({
       top: window.innerHeight,
@@ -63,7 +66,10 @@ export function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.6 }}
         >
-          <button className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-[var(--color-sky-blue)] to-[var(--color-sunset-orange)] px-8 py-4 text-lg font-semibold text-white transition-all duration-300 hover:shadow-2xl hover:shadow-sky-500/50">
+          <button
+            onClick={() => router.push('/register')}
+            className="group relative inline-flex items-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-[var(--color-sky-blue)] to-[var(--color-sunset-orange)] px-8 py-4 text-lg font-semibold text-white transition-all duration-300 hover:shadow-2xl hover:shadow-sky-500/50"
+          >
             <span className="relative z-10">Start Planning</span>
             <ArrowRight className="relative z-10 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
             <div className="absolute inset-0 -z-10 bg-gradient-to-r from-[var(--color-sunset-orange)] to-[var(--color-sky-blue)] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
