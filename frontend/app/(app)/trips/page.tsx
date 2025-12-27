@@ -13,7 +13,7 @@ import { Button } from '@/components/ui/button';
 import { SearchBar } from '@/components/ui/search-bar';
 import { EmptyState } from '@/components/ui/empty-state';
 import { TripCard } from '@/components/patterns/trip-card';
-import { TripStatus } from '@/types/models.types';
+import { TripStatus } from '@/types';
 
 // ============================================================================
 // Trips Page Component

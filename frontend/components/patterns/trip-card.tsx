@@ -9,8 +9,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { MapPin, Calendar, DollarSign, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
-import type { Trip } from '@/types/models.types';
-import { TripStatus } from '@/types/models.types';
+import type { Trip } from '@/types';
+import { TripStatus } from '@/types';
 
 // ============================================================================
 // Trip Card Component

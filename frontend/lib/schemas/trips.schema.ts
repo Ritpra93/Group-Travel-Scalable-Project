@@ -4,7 +4,6 @@
  */
 
 import { z } from 'zod';
-import { TripStatus } from '@/types/models.types';
 
 // ============================================================================
 // Trip Schemas
@@ -75,7 +74,7 @@ export const updateTripSchema = z
       .optional()
       .or(z.nan()),
     imageUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
-    status: z.nativeEnum(TripStatus).optional(),
+    status: z.enum(['PLANNING', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
   })
   .refine(
     (data) => {
@@ -94,8 +93,8 @@ export const updateTripSchema = z
  * Update Trip Status Schema
  */
 export const updateTripStatusSchema = z.object({
-  status: z.nativeEnum(TripStatus, {
-    errorMap: () => ({ message: 'Please select a valid status' }),
+  status: z.enum(['PLANNING', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'], {
+    message: 'Please select a valid status',
   }),
 });
 

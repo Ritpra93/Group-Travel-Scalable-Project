@@ -49,8 +49,11 @@ export interface AuthResponse {
     name: string;
     avatarUrl: string | null;
   };
-  accessToken: string;
-  refreshToken: string;
+  tokens: {
+    accessToken: string;
+    refreshToken: string;
+    expiresIn: string;
+  };
 }
 
 // ============================================================================

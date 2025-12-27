@@ -7,7 +7,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { tripsService } from '../services/trips.service';
 import type { CreateTripDTO, UpdateTripDTO } from '@/types/api.types';
-import type { TripStatus } from '@/types/models.types';
+import type { TripStatus } from '@/types';
 
 // ============================================================================
 // Query Keys

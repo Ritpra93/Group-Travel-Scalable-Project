@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
@@ -31,7 +31,7 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
-import { TripStatus } from '@/types/models.types';
+import { TripStatus } from '@/types';
 
 // ============================================================================
 // Trip Detail Page Component
@@ -55,24 +55,25 @@ const statusOptions = [
 export default function TripDetailPage({
   params,
 }: {
-  params: { tripId: string };
+  params: Promise<{ tripId: string }>;
 }) {
+  const { tripId } = use(params);
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Fetch trip
-  const { data: trip, isLoading, error } = useTrip(params.tripId);
+  const { data: trip, isLoading, error } = useTrip(tripId);
 
   // Mutations
   const { mutate: deleteTrip, isPending: isDeleting } = useDeleteTrip();
   const { mutate: updateStatus, isPending: isUpdatingStatus } =
-    useUpdateTripStatus(params.tripId);
+    useUpdateTripStatus(tripId);
 
   // Handle delete
   const handleDelete = () => {
     if (showDeleteConfirm) {
-      deleteTrip(params.tripId);
+      deleteTrip(tripId);
     } else {
       setShowDeleteConfirm(true);
       setTimeout(() => setShowDeleteConfirm(false), 3000);

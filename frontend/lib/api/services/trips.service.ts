@@ -10,7 +10,7 @@ import type {
   UpdateTripDTO,
   PaginatedResponse,
 } from '@/types/api.types';
-import { TripStatus } from '@/types/models.types';
+import { TripStatus } from '@/types';
 
 // ============================================================================
 // Trips CRUD
@@ -37,7 +37,7 @@ export async function getTrips(params?: {
  */
 export async function getTrip(tripId: string): Promise<Trip> {
   const response = await apiClient.get(`/trips/${tripId}`);
-  return response.data;
+  return response.data.data;
 }
 
 /**
@@ -45,7 +45,7 @@ export async function getTrip(tripId: string): Promise<Trip> {
  */
 export async function createTrip(data: CreateTripDTO): Promise<Trip> {
   const response = await apiClient.post('/trips', data);
-  return response.data;
+  return response.data.data;
 }
 
 /**
@@ -56,7 +56,7 @@ export async function updateTrip(
   data: UpdateTripDTO
 ): Promise<Trip> {
   const response = await apiClient.patch(`/trips/${tripId}`, data);
-  return response.data;
+  return response.data.data;
 }
 
 /**
@@ -76,7 +76,7 @@ export async function updateTripStatus(
   const response = await apiClient.patch(`/trips/${tripId}/status`, {
     status,
   });
-  return response.data;
+  return response.data.data;
 }
 
 // ============================================================================

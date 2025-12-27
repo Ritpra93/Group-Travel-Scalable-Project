@@ -35,7 +35,7 @@ export async function getGroups(params?: {
  */
 export async function getGroup(groupId: string): Promise<Group> {
   const response = await apiClient.get(`/groups/${groupId}`);
-  return response.data;
+  return response.data.data;
 }
 
 /**
@@ -43,7 +43,7 @@ export async function getGroup(groupId: string): Promise<Group> {
  */
 export async function createGroup(data: CreateGroupDTO): Promise<Group> {
   const response = await apiClient.post('/groups', data);
-  return response.data;
+  return response.data.data;
 }
 
 /**
@@ -54,7 +54,7 @@ export async function updateGroup(
   data: UpdateGroupDTO
 ): Promise<Group> {
   const response = await apiClient.patch(`/groups/${groupId}`, data);
-  return response.data;
+  return response.data.data;
 }
 
 /**
@@ -73,7 +73,7 @@ export async function deleteGroup(groupId: string): Promise<void> {
  */
 export async function getGroupMembers(groupId: string): Promise<GroupMember[]> {
   const response = await apiClient.get(`/groups/${groupId}/members`);
-  return response.data;
+  return response.data.data;
 }
 
 /**
@@ -84,7 +84,7 @@ export async function addGroupMember(
   data: AddMemberDTO
 ): Promise<GroupMember> {
   const response = await apiClient.post(`/groups/${groupId}/members`, data);
-  return response.data;
+  return response.data.data;
 }
 
 /**
@@ -99,7 +99,7 @@ export async function updateMemberRole(
     `/groups/${groupId}/members/${memberId}`,
     data
   );
-  return response.data;
+  return response.data.data;
 }
 
 /**

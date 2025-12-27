@@ -60,9 +60,13 @@ export function useLogin(): UseMutationResult<AuthResponse, ApiError, LoginReque
   return useMutation<AuthResponse, ApiError, LoginRequest>({
     mutationFn: authService.login,
     onSuccess: (data) => {
-      // Store user and tokens
+      console.log('[Login Success] Received data:', data);
+      console.log('[Login Success] Access token:', data.tokens?.accessToken);
+
+      // Store tokens first
+      setTokens(data.tokens.accessToken);
+      // Then store user
       setUser(data.user);
-      setTokens(data.accessToken);
 
       // Invalidate and refetch user query
       queryClient.invalidateQueries({ queryKey: authKeys.me() });
@@ -85,9 +89,13 @@ export function useRegister(): UseMutationResult<AuthResponse, ApiError, Registe
   return useMutation<AuthResponse, ApiError, RegisterRequest>({
     mutationFn: authService.register,
     onSuccess: (data) => {
-      // Store user and tokens
+      console.log('[Register Success] Received data:', data);
+      console.log('[Register Success] Access token:', data.tokens?.accessToken);
+
+      // Store tokens first
+      setTokens(data.tokens.accessToken);
+      // Then store user
       setUser(data.user);
-      setTokens(data.accessToken);
 
       // Invalidate and refetch user query
       queryClient.invalidateQueries({ queryKey: authKeys.me() });
@@ -139,7 +147,7 @@ export function useRefreshToken(): UseMutationResult<AuthResponse, ApiError, voi
     mutationFn: authService.refresh,
     onSuccess: (data) => {
       // Update access token
-      setTokens(data.accessToken);
+      setTokens(data.tokens.accessToken);
     },
   });
 }

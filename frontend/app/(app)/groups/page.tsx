@@ -27,6 +27,7 @@ export default function GroupsPage() {
     search: search || undefined,
   });
 
+  // data is a PaginatedResponse with data and pagination properties
   const groups = data?.data || [];
   const hasGroups = groups.length > 0;
   const isSearching = search.length > 0;

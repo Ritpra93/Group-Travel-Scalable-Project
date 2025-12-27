@@ -110,12 +110,12 @@ export default function DashboardPage() {
         <p className="mb-6 text-stone-600">
           Start planning your first adventure and invite your crew!
         </p>
-        <Button variant="primary" size="lg" asChild>
-          <Link href="/trips/new">
+        <Link href="/trips/new">
+          <Button variant="primary" size="lg">
             <Plus className="h-5 w-5" />
             Create Your First Trip
-          </Link>
-        </Button>
+          </Button>
+        </Link>
       </div>
     </div>
   );

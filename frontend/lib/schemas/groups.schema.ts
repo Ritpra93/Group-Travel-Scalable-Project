@@ -4,7 +4,6 @@
  */
 
 import { z } from 'zod';
-import { GroupRole } from '@/types/models.types';
 
 // ============================================================================
 // Group Schemas
@@ -23,8 +22,13 @@ export const createGroupSchema = z.object({
     .string()
     .max(500, 'Description must not exceed 500 characters')
     .optional()
-    .or(z.literal('')),
-  imageUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
+    .transform(val => val || undefined),
+  imageUrl: z
+    .string()
+    .url('Must be a valid URL')
+    .optional()
+    .or(z.literal(''))
+    .transform(val => val || undefined),
 });
 
 /**
@@ -54,8 +58,8 @@ export const updateGroupSchema = z.object({
  */
 export const addMemberSchema = z.object({
   userId: z.string().uuid('Must be a valid user ID'),
-  role: z.nativeEnum(GroupRole, {
-    errorMap: () => ({ message: 'Please select a valid role' }),
+  role: z.enum(['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'], {
+    message: 'Please select a valid role',
   }),
 });
 
@@ -63,8 +67,8 @@ export const addMemberSchema = z.object({
  * Update Member Role Schema
  */
 export const updateMemberRoleSchema = z.object({
-  role: z.nativeEnum(GroupRole, {
-    errorMap: () => ({ message: 'Please select a valid role' }),
+  role: z.enum(['OWNER', 'ADMIN', 'MEMBER', 'VIEWER'], {
+    message: 'Please select a valid role',
   }),
 });
 

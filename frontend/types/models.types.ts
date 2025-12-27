@@ -38,6 +38,13 @@ export interface Session {
 
 export type GroupRole = 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER';
 
+export const GroupRole = {
+  OWNER: 'OWNER' as const,
+  ADMIN: 'ADMIN' as const,
+  MEMBER: 'MEMBER' as const,
+  VIEWER: 'VIEWER' as const,
+};
+
 export interface Group {
   id: string;
   name: string;
@@ -65,6 +72,16 @@ export interface GroupMember {
 // ============================================================================
 
 export type TripStatus = 'PLANNING' | 'CONFIRMED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+
+export const TripStatus = {
+  PLANNING: 'PLANNING' as const,
+  CONFIRMED: 'CONFIRMED' as const,
+  UPCOMING: 'CONFIRMED' as const, // Alias for CONFIRMED
+  IN_PROGRESS: 'IN_PROGRESS' as const,
+  ONGOING: 'IN_PROGRESS' as const, // Alias for IN_PROGRESS
+  COMPLETED: 'COMPLETED' as const,
+  CANCELLED: 'CANCELLED' as const,
+};
 
 export interface Trip {
   id: string;

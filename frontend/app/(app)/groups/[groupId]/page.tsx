@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import {
@@ -28,7 +28,7 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
-import { GroupRole } from '@/types/models.types';
+import { GroupRole } from '@/types';
 
 // ============================================================================
 // Group Detail Page Component
@@ -37,16 +37,17 @@ import { GroupRole } from '@/types/models.types';
 export default function GroupDetailPage({
   params,
 }: {
-  params: { groupId: string };
+  params: Promise<{ groupId: string }>;
 }) {
+  const { groupId } = use(params);
   const router = useRouter();
   const { user } = useAuthStore();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Fetch group and members
-  const { data: group, isLoading, error } = useGroup(params.groupId);
+  const { data: group, isLoading, error } = useGroup(groupId);
   const { data: members, isLoading: membersLoading } = useGroupMembers(
-    params.groupId
+    groupId
   );
 
   // Mutations
@@ -61,7 +62,7 @@ export default function GroupDetailPage({
   // Handle delete
   const handleDelete = () => {
     if (showDeleteConfirm) {
-      deleteGroup(params.groupId);
+      deleteGroup(groupId);
     } else {
       setShowDeleteConfirm(true);
       setTimeout(() => setShowDeleteConfirm(false), 3000);
@@ -70,7 +71,7 @@ export default function GroupDetailPage({
 
   // Handle leave
   const handleLeave = () => {
-    leaveGroup(params.groupId);
+    leaveGroup(groupId);
   };
 
   // Loading state
