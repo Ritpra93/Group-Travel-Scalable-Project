@@ -41,16 +41,16 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
           id={inputId}
           className={cn(
             // Base styles
-            'w-full rounded-lg border px-4 py-2.5 text-base',
-            'transition-all duration-200',
-            'placeholder:text-stone-400',
-            'focus:outline-none focus:ring-2 focus:ring-offset-1',
+            'w-full h-14 rounded-xl border px-4 text-base',
+            'transition-all duration-300',
+            'placeholder:text-slate-400',
+            'focus:outline-none focus:ring-4',
             // Normal state
-            !error && 'border-stone-300 focus:border-primary focus:ring-primary/20',
+            !error && 'border-slate-200 focus:border-primary focus:ring-primary/10',
             // Error state
-            error && 'border-red-500 focus:border-red-500 focus:ring-red-500/20',
+            error && 'border-red-500 focus:border-red-500 focus:ring-red-500/10',
             // Disabled state
-            'disabled:cursor-not-allowed disabled:bg-stone-50 disabled:text-stone-500',
+            'disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500',
             className
           )}
           {...props}

@@ -135,143 +135,138 @@ export default function TripDetailPage({
   const memberCount = trip._count?.members || 0;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <Button
-          variant="ghost"
-          onClick={() => router.back()}
-          className="mb-4 gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
-      </div>
+    <div className="-m-4 sm:-m-6 lg:-m-8">
+      {/* Cinematic Hero Cover */}
+      <div className="relative min-h-screen w-full overflow-hidden flex flex-col">
+        {trip.imageUrl ? (
+          <Image
+            src={trip.imageUrl}
+            alt={trip.name}
+            fill
+            className="object-cover"
+            sizes="100vw"
+            priority
+            quality={90}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-stone-100 flex items-center justify-center">
+            <MapPin className="h-40 w-40 text-stone-300" />
+          </div>
+        )}
 
-      {/* Trip Header Card */}
-      <Card>
-        <CardContent className="p-0">
-          {/* Cover Image */}
-          {trip.imageUrl ? (
-            <div className="relative h-80 w-full rounded-t-xl overflow-hidden">
-              <Image
-                src={trip.imageUrl}
-                alt={trip.name}
-                fill
-                className="object-cover"
-                sizes="100vw"
-                priority
-              />
-            </div>
-          ) : (
-            <div className="relative h-80 w-full rounded-t-xl overflow-hidden bg-gradient-to-br from-primary/20 via-sky/20 to-golden/20 flex items-center justify-center">
-              <MapPin className="h-32 w-32 text-primary/40" />
-            </div>
+        {/* Dark gradient overlay */}
+        <div className="absolute inset-0 bg-linear-to-b from-black/60 via-black/40 to-black/80" />
+
+        {/* Back button - top left */}
+        <div className="absolute top-8 left-8 z-20">
+          <Button
+            variant="secondary"
+            onClick={() => router.back()}
+            className="gap-2 backdrop-blur-md bg-white/10 border-white/20 text-white hover:bg-white/20"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+        </div>
+
+        {/* Settings button - top right */}
+        <div className="absolute top-8 right-8 z-20">
+          <Button
+            variant="secondary"
+            onClick={() => router.push(`/trips/${trip.id}/settings`)}
+            className="gap-2 backdrop-blur-md bg-white/10 border-white/20 text-white hover:bg-white/20"
+          >
+            <Settings className="h-4 w-4" />
+            Settings
+          </Button>
+        </div>
+
+        {/* Centered content */}
+        <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-6">
+          <h1 className="font-serif text-7xl md:text-8xl font-semibold text-white mb-6 tracking-tight max-w-5xl">
+            {trip.name}
+          </h1>
+          <div className="flex items-center gap-3 text-white/90 mb-4">
+            <MapPin className="h-6 w-6" />
+            <span className="text-2xl font-light">{trip.destination}</span>
+          </div>
+          <p className="text-lg text-white/80 font-light max-w-2xl">
+            {startDate} – {endDate}
+          </p>
+          {trip.description && (
+            <p className="text-xl text-white/70 mt-6 max-w-3xl font-light leading-relaxed">
+              {trip.description}
+            </p>
           )}
+        </div>
 
-          {/* Trip Info */}
-          <div className="p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <h1 className="text-3xl font-serif font-bold text-dark mb-2">
-                  {trip.name}
-                </h1>
-                <div className="flex items-center gap-2 text-stone-600 mb-3">
-                  <MapPin className="h-5 w-5" />
-                  <span className="text-lg">{trip.destination}</span>
-                </div>
-                {trip.description && (
-                  <p className="text-stone-600">{trip.description}</p>
-                )}
-              </div>
-              <Button
-                variant="outline"
-                onClick={() => router.push(`/trips/${trip.id}/settings`)}
-                className="gap-2"
-              >
-                <Settings className="h-4 w-4" />
-                Settings
-              </Button>
-            </div>
-
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="flex items-center gap-3 p-4 rounded-lg bg-stone-50">
-                <Calendar className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-xs text-stone-500">Duration</p>
-                  <p className="font-medium text-dark">
+        {/* Stats bar at bottom with glass morphism */}
+        <div className="relative z-10 p-8">
+          <div className="container mx-auto px-6">
+            <div className="glass-card rounded-3xl p-8 backdrop-blur-xl">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-white">
+                <div className="text-center">
+                  <Calendar className="h-6 w-6 mx-auto mb-2 text-white/70" />
+                  <p className="text-sm font-medium text-white/60 mb-1 uppercase tracking-wider">
+                    Duration
+                  </p>
+                  <p className="text-3xl font-semibold font-serif">
                     {duration} {duration === 1 ? 'day' : 'days'}
                   </p>
                 </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-4 rounded-lg bg-stone-50">
-                <Calendar className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-xs text-stone-500">Dates</p>
-                  <p className="font-medium text-dark text-sm">
-                    {startDate} - {endDate}
-                  </p>
-                </div>
-              </div>
-
-              {trip.budget && (
-                <div className="flex items-center gap-3 p-4 rounded-lg bg-stone-50">
-                  <DollarSign className="h-5 w-5 text-primary" />
-                  <div>
-                    <p className="text-xs text-stone-500">Budget</p>
-                    <p className="font-medium text-dark">
+                {trip.budget && (
+                  <div className="text-center">
+                    <DollarSign className="h-6 w-6 mx-auto mb-2 text-white/70" />
+                    <p className="text-sm font-medium text-white/60 mb-1 uppercase tracking-wider">
+                      Budget
+                    </p>
+                    <p className="text-3xl font-semibold font-serif">
                       ${trip.budget.toLocaleString()}
                     </p>
                   </div>
+                )}
+                <div className="text-center">
+                  <Users className="h-6 w-6 mx-auto mb-2 text-white/70" />
+                  <p className="text-sm font-medium text-white/60 mb-1 uppercase tracking-wider">
+                    Members
+                  </p>
+                  <p className="text-3xl font-semibold font-serif">{memberCount}</p>
                 </div>
-              )}
-
-              <div className="flex items-center gap-3 p-4 rounded-lg bg-stone-50">
-                <Users className="h-5 w-5 text-primary" />
-                <div>
-                  <p className="text-xs text-stone-500">Members</p>
-                  <p className="font-medium text-dark">{memberCount}</p>
+                <div className="text-center">
+                  <div className="h-6 w-6 mx-auto mb-2" />
+                  <p className="text-sm font-medium text-white/60 mb-1 uppercase tracking-wider">
+                    Status
+                  </p>
+                  <select
+                    value={trip.status}
+                    onChange={(e) =>
+                      handleStatusChange(e.target.value as TripStatus)
+                    }
+                    disabled={isUpdatingStatus}
+                    className="bg-white/10 border border-white/20 rounded-full px-4 py-2 text-white text-sm font-medium backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-white/30"
+                  >
+                    {statusOptions.map((option) => (
+                      <option key={option.value} value={option.value} className="bg-stone-900">
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               </div>
-            </div>
-
-            {/* Status & Group */}
-            <div className="flex items-center gap-4 mt-6 pt-6 border-t border-stone-200">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-stone-600">Status:</span>
-                <select
-                  value={trip.status}
-                  onChange={(e) =>
-                    handleStatusChange(e.target.value as TripStatus)
-                  }
-                  disabled={isUpdatingStatus}
-                  className="px-3 py-1 rounded-lg border border-stone-200 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary/20"
-                >
-                  {statusOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
               {trip.group && (
-                <div className="text-sm text-stone-600">
-                  Group:{' '}
+                <div className="mt-6 pt-6 border-t border-white/20 text-center">
                   <button
                     onClick={() => router.push(`/groups/${trip.group.id}`)}
-                    className="text-primary font-medium hover:underline"
+                    className="text-white/90 font-light hover:text-white transition-colors"
                   >
-                    {trip.group.name}
+                    Part of <span className="font-semibold">{trip.group.name}</span>
                   </button>
                 </div>
               )}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Tabs */}
       <div className="border-b border-stone-200">

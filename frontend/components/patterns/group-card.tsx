@@ -31,52 +31,59 @@ export function GroupCard({ group }: GroupCardProps) {
 
   return (
     <Link href={`/groups/${group.id}`}>
-      <Card clickable hover className="h-full">
-        <CardHeader className="p-0">
+      <Card clickable hover className="h-full overflow-hidden group border border-stone-200/50">
+        {/* Hero Image with Overlay Text */}
+        <div className="relative h-56 w-full overflow-hidden">
           {group.imageUrl ? (
-            <div className="relative h-40 w-full rounded-t-xl overflow-hidden">
-              <Image
-                src={group.imageUrl}
-                alt={group.name}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              />
-            </div>
+            <Image
+              src={group.imageUrl}
+              alt={group.name}
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 50vw"
+            />
           ) : (
-            <div className="relative h-40 w-full rounded-t-xl overflow-hidden bg-gradient-to-br from-primary/20 via-sky/20 to-golden/20 flex items-center justify-center">
-              <Users className="h-16 w-16 text-primary/40" />
+            <div className="absolute inset-0 bg-stone-100 flex items-center justify-center">
+              <Users className="h-16 w-16 text-stone-300" />
             </div>
           )}
-        </CardHeader>
-        <CardContent className="p-5">
-          <h3 className="text-lg font-semibold text-dark mb-2 line-clamp-1">
-            {group.name}
-          </h3>
 
+          {/* Refined Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/80" />
+
+          {/* Group Name - Bottom Overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-7">
+            <h3 className="font-serif text-2xl font-semibold text-white line-clamp-2 tracking-tight">
+              {group.name}
+            </h3>
+          </div>
+        </div>
+
+        {/* Details Below Image */}
+        <CardContent className="p-7">
           {group.description && (
-            <p className="text-sm text-stone-600 mb-4 line-clamp-2">
+            <p className="text-sm text-stone-600 mb-5 line-clamp-2 font-light leading-relaxed">
               {group.description}
             </p>
           )}
 
-          <div className="flex items-center gap-4 text-sm text-stone-500">
-            <div className="flex items-center gap-1">
-              <Users className="h-4 w-4" />
+          <div className="flex items-center gap-6 text-sm text-stone-600 font-light">
+            <div className="flex items-center gap-1.5">
+              <Users className="h-3.5 w-3.5 text-stone-400" />
               <span>
                 {memberCount} {memberCount === 1 ? 'member' : 'members'}
               </span>
             </div>
-            <div className="flex items-center gap-1">
-              <Calendar className="h-4 w-4" />
+            <div className="flex items-center gap-1.5">
+              <Calendar className="h-3.5 w-3.5 text-stone-400" />
               <span>
                 {tripCount} {tripCount === 1 ? 'trip' : 'trips'}
               </span>
             </div>
           </div>
 
-          <div className="mt-4 pt-4 border-t border-stone-100">
-            <p className="text-xs text-stone-400">Created {createdDate}</p>
+          <div className="mt-5 pt-5 border-t border-stone-200">
+            <p className="text-xs text-stone-500 font-light">Created {createdDate}</p>
           </div>
         </CardContent>
       </Card>

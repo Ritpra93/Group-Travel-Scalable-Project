@@ -22,11 +22,11 @@ export interface TripCardProps {
 
 // Status badge colors
 const statusColors: Record<TripStatus, string> = {
-  [TripStatus.PLANNING]: 'bg-sky/10 text-sky border-sky/20',
-  [TripStatus.UPCOMING]: 'bg-golden/10 text-golden border-golden/20',
-  [TripStatus.ONGOING]: 'bg-primary/10 text-primary border-primary/20',
-  [TripStatus.COMPLETED]: 'bg-stone-500/10 text-stone-700 border-stone-200',
-  [TripStatus.CANCELLED]: 'bg-red-500/10 text-red-700 border-red-200',
+  [TripStatus.PLANNING]: 'bg-zinc-100 text-zinc-600 border-zinc-200',
+  [TripStatus.UPCOMING]: 'bg-orange-100 text-orange-700 border-orange-200',
+  [TripStatus.ONGOING]: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  [TripStatus.COMPLETED]: 'bg-zinc-100 text-zinc-500 border-zinc-200',
+  [TripStatus.CANCELLED]: 'bg-rose-100 text-rose-700 border-rose-200',
 };
 
 export function TripCard({ trip }: TripCardProps) {
@@ -49,79 +49,74 @@ export function TripCard({ trip }: TripCardProps) {
 
   const memberCount = trip._count?.members || 0;
 
+  // Handle budget - backend returns as string (Decimal)
+  const budget = trip.totalBudget ? parseFloat(trip.totalBudget) : null;
+
   return (
     <Link href={`/trips/${trip.id}`}>
-      <Card clickable hover className="h-full">
-        <CardHeader className="p-0">
+      <Card clickable hover className="h-full overflow-hidden group border border-zinc-200/50">
+        {/* Hero Image with Overlay Text */}
+        <div className="relative h-72 w-full overflow-hidden">
           {trip.imageUrl ? (
-            <div className="relative h-48 w-full rounded-t-xl overflow-hidden">
-              <Image
-                src={trip.imageUrl}
-                alt={trip.name}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-              />
-              {/* Status Badge Overlay */}
-              <div className="absolute top-3 right-3">
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium border backdrop-blur-sm ${
-                    statusColors[trip.status]
-                  }`}
-                >
-                  {trip.status}
-                </span>
-              </div>
-            </div>
+            <Image
+              src={trip.imageUrl}
+              alt={trip.name}
+              fill
+              className="object-cover transition-transform duration-700 group-hover:scale-105"
+              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 50vw"
+            />
           ) : (
-            <div className="relative h-48 w-full rounded-t-xl overflow-hidden bg-gradient-to-br from-primary/20 via-sky/20 to-golden/20 flex items-center justify-center">
-              <MapPin className="h-20 w-20 text-primary/40" />
-              <div className="absolute top-3 right-3">
-                <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium border ${
-                    statusColors[trip.status]
-                  }`}
-                >
-                  {trip.status}
-                </span>
-              </div>
+            <div className="absolute inset-0 bg-zinc-100 flex items-center justify-center">
+              <MapPin className="h-20 w-20 text-zinc-300" />
             </div>
           )}
-        </CardHeader>
-        <CardContent className="p-5">
-          <h3 className="text-lg font-semibold text-dark mb-1 line-clamp-1">
-            {trip.name}
-          </h3>
 
-          <div className="flex items-center gap-1 text-sm text-stone-600 mb-3">
-            <MapPin className="h-4 w-4" />
-            <span className="line-clamp-1">{trip.destination}</span>
+          {/* Refined Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/40 to-black/80" />
+
+          {/* Status Badge - Top Right */}
+          <div className="absolute top-5 right-5">
+            <span
+              className={`px-3 py-1 rounded-full text-[11px] font-medium uppercase tracking-wide backdrop-blur-md ${
+                statusColors[trip.status]
+              }`}
+            >
+              {trip.status}
+            </span>
           </div>
 
-          {trip.description && (
-            <p className="text-sm text-stone-600 mb-4 line-clamp-2">
-              {trip.description}
-            </p>
-          )}
+          {/* Title and Destination - Bottom Overlay */}
+          <div className="absolute bottom-0 left-0 right-0 p-7">
+            <h3 className="font-serif text-2xl font-semibold text-white mb-2 line-clamp-2 tracking-tight">
+              {trip.name}
+            </h3>
+            <div className="flex items-center gap-2 text-white/80">
+              <MapPin className="h-3.5 w-3.5" />
+              <span className="text-sm font-light line-clamp-1">{trip.destination}</span>
+            </div>
+          </div>
+        </div>
 
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm text-stone-600">
-              <Calendar className="h-4 w-4" />
+        {/* Details Below Image */}
+        <CardContent className="p-7">
+          <div className="space-y-3.5">
+            <div className="flex items-center gap-2 text-sm text-zinc-600 font-light">
+              <Calendar className="h-3.5 w-3.5 text-zinc-400" />
               <span>
-                {startDate} - {endDate} ({duration}{' '}
-                {duration === 1 ? 'day' : 'days'})
+                {startDate} – {endDate} · {duration}{' '}
+                {duration === 1 ? 'day' : 'days'}
               </span>
             </div>
 
-            <div className="flex items-center gap-4">
-              {trip.budget && (
-                <div className="flex items-center gap-1 text-sm text-stone-600">
-                  <DollarSign className="h-4 w-4" />
-                  <span>${trip.budget.toLocaleString()}</span>
+            <div className="flex items-center gap-6">
+              {budget && (
+                <div className="flex items-center gap-1.5 text-sm text-zinc-600 font-light">
+                  <DollarSign className="h-3.5 w-3.5 text-zinc-400" />
+                  <span>${budget.toLocaleString()}</span>
                 </div>
               )}
-              <div className="flex items-center gap-1 text-sm text-stone-600">
-                <Users className="h-4 w-4" />
+              <div className="flex items-center gap-1.5 text-sm text-zinc-600 font-light">
+                <Users className="h-3.5 w-3.5 text-zinc-400" />
                 <span>
                   {memberCount} {memberCount === 1 ? 'member' : 'members'}
                 </span>
@@ -130,9 +125,9 @@ export function TripCard({ trip }: TripCardProps) {
           </div>
 
           {trip.group && (
-            <div className="mt-4 pt-4 border-t border-stone-100">
-              <p className="text-xs text-stone-400">
-                Group: {trip.group.name}
+            <div className="mt-5 pt-5 border-t border-zinc-200">
+              <p className="text-xs text-zinc-500 font-light">
+                {trip.group.name}
               </p>
             </div>
           )}

@@ -45,17 +45,20 @@ export default function TripsPage() {
   const isFiltering = search.length > 0 || statusFilter !== undefined;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-12">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-dark">Trips</h1>
-          <p className="text-stone-600 mt-1">
+          <h1 className="font-serif text-5xl font-semibold text-stone-900 mb-3 tracking-tight">
+            Trips
+          </h1>
+          <p className="text-lg text-stone-600 font-light leading-relaxed">
             Plan and manage your adventures
           </p>
         </div>
         <Button
           variant="primary"
+          size="lg"
           onClick={() => router.push('/trips/new')}
           className="gap-2"
         >
@@ -65,26 +68,28 @@ export default function TripsPage() {
       </div>
 
       {/* Filters */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         {/* Search Bar */}
-        <SearchBar
-          placeholder="Search trips..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          onClear={() => setSearch('')}
-        />
+        <div className="max-w-2xl">
+          <SearchBar
+            placeholder="Search trips..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            onClear={() => setSearch('')}
+          />
+        </div>
 
         {/* Status Filters */}
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-sm font-medium text-stone-700">Status:</span>
+        <div className="flex items-center gap-3 flex-wrap">
+          <span className="text-sm font-medium text-stone-600">Filter:</span>
           {statusFilters.map((filter) => (
             <button
               key={filter.label}
               onClick={() => setStatusFilter(filter.value)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
                 statusFilter === filter.value
-                  ? 'bg-primary text-white'
-                  : 'bg-white border border-stone-200 text-stone-700 hover:bg-stone-50'
+                  ? 'bg-stone-900 text-white shadow-soft'
+                  : 'bg-stone-100 text-stone-700 hover:bg-stone-200'
               }`}
             >
               {filter.label}
@@ -95,11 +100,11 @@ export default function TripsPage() {
 
       {/* Loading State */}
       {isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
-              className="h-96 rounded-xl bg-stone-100 animate-pulse"
+              className="h-120 rounded-2xl bg-stone-100 animate-pulse"
             />
           ))}
         </div>
@@ -145,7 +150,7 @@ export default function TripsPage() {
 
       {/* Trips Grid */}
       {!isLoading && !error && hasTrips && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {trips.map((trip) => (
             <TripCard key={trip.id} trip={trip} />
           ))}
@@ -154,8 +159,8 @@ export default function TripsPage() {
 
       {/* Pagination Info */}
       {!isLoading && !error && hasTrips && data && (
-        <div className="flex items-center justify-between pt-4 border-t border-stone-200">
-          <p className="text-sm text-stone-600">
+        <div className="flex items-center justify-between pt-8 mt-8 border-t border-stone-200">
+          <p className="text-sm text-stone-500 font-light">
             Showing {trips.length} of {data.total} trips
           </p>
         </div>

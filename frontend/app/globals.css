@@ -5,31 +5,36 @@
    ============================================================================ */
 
 :root {
-  /* Wanderlust Brand Colors - Adventure Travel Theme */
-  --color-forest: #2A9D8F;      /* Primary - buttons, nav, highlights */
-  --color-sky: #56CCF2;          /* Secondary - hover states, links */
-  --color-golden: #F2C94C;       /* Accent - CTAs, important actions */
-  --color-stone: #E0E0E0;        /* Neutral - borders, muted elements */
-  --color-cream: #F5F5F0;        /* Background - sections */
-  --color-brown: #3E3E3E;        /* Text - primary body text */
-  --color-dark: #1E1E1E;         /* Dark - footer, dark sections */
-  --color-white: #ffffff;
+  /* Zinc Neutrals - Aura Primary Palette */
+  --color-zinc-50: #FAFAFA;
+  --color-zinc-100: #F4F4F5;
+  --color-zinc-200: #E4E4E7;
+  --color-zinc-300: #D4D4D8;
+  --color-zinc-400: #A1A1AA;
+  --color-zinc-500: #71717A;
+  --color-zinc-600: #52525B;
+  --color-zinc-700: #3F3F46;
+  --color-zinc-800: #27272A;
+  --color-zinc-900: #18181B;
 
-  /* Stone shades for grays */
-  --color-stone-50: #FAFAF9;
-  --color-stone-100: #F5F5F4;
-  --color-stone-200: #E7E5E4;
-  --color-stone-300: #D6D3D1;
-  --color-stone-400: #A8A29E;
-  --color-stone-500: #78716C;
-  --color-stone-600: #57534E;
-  --color-stone-700: #44403C;
-  --color-stone-800: #292524;
-  --color-stone-900: #1C1917;
+  /* Accent Colors */
+  --color-emerald-400: #34D399;
+  --color-emerald-500: #10B981;
+  --color-orange-50: #FFF7ED;
+  --color-orange-100: #FFEDD5;
+  --color-orange-500: #F97316;
+  --color-orange-600: #EA580C;
+  --color-rose-500: #F43F5E;
+  --color-rose-600: #E11D48;
 
-  /* Base theme colors */
-  --background: #ffffff;
-  --foreground: var(--color-brown);
+  /* Glass Morphism */
+  --glass-light: rgba(255, 255, 255, 0.7);
+  --glass-dark: rgba(24, 24, 27, 0.6);
+  --glass-blur: 12px;
+
+  /* Base theme */
+  --background: #FAFAFA;
+  --foreground: #18181B;
 }
 
 @theme inline {
@@ -37,24 +42,33 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
-  --font-serif: var(--font-playfair);
 
-  /* Custom Wanderlust colors */
-  --color-primary: var(--color-forest);
-  --color-secondary: var(--color-sky);
-  --color-accent: var(--color-golden);
+  /* Zinc neutrals */
+  --color-zinc-50: #FAFAFA;
+  --color-zinc-100: #F4F4F5;
+  --color-zinc-200: #E4E4E7;
+  --color-zinc-300: #D4D4D8;
+  --color-zinc-400: #A1A1AA;
+  --color-zinc-500: #71717A;
+  --color-zinc-600: #52525B;
+  --color-zinc-700: #3F3F46;
+  --color-zinc-800: #27272A;
+  --color-zinc-900: #18181B;
 
-  /* Stone shades */
-  --color-stone-50: #FAFAF9;
-  --color-stone-100: #F5F5F4;
-  --color-stone-200: #E7E5E4;
-  --color-stone-300: #D6D3D1;
-  --color-stone-400: #A8A29E;
-  --color-stone-500: #78716C;
-  --color-stone-600: #57534E;
-  --color-stone-700: #44403C;
-  --color-stone-800: #292524;
-  --color-stone-900: #1C1917;
+  /* Accent colors */
+  --color-emerald-400: #34D399;
+  --color-emerald-500: #10B981;
+  --color-orange-50: #FFF7ED;
+  --color-orange-100: #FFEDD5;
+  --color-orange-500: #F97316;
+  --color-orange-600: #EA580C;
+  --color-rose-500: #F43F5E;
+  --color-rose-600: #E11D48;
+
+  /* Clean shadows - subtle */
+  --shadow-soft: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+  --shadow-hover: 0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+  --shadow-overlay: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
 }
 
 /* Base Styles */
@@ -75,59 +89,54 @@ body {
   color: var(--foreground);
   font-family: var(--font-inter), system-ui, sans-serif;
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Typography */
+/* Typography - Clean & Modern */
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-playfair), serif;
-  font-weight: 700;
+  font-family: var(--font-inter), system-ui, sans-serif;
+  font-weight: 300;
   line-height: 1.2;
-  color: var(--color-dark);
+  color: var(--color-zinc-900);
+  letter-spacing: -0.025em;
 }
 
 p {
-  line-height: 1.75;
-  margin-bottom: 1rem;
+  line-height: 1.6;
+  margin-bottom: 0;
+  color: var(--color-zinc-600);
+  font-size: 0.875rem;
+  font-weight: 400;
 }
 
 a {
-  color: var(--color-forest);
+  color: var(--color-zinc-900);
   text-decoration: none;
-  transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  transition: color 150ms ease;
 }
 
 a:hover {
-  color: var(--color-sky);
-}
-
-/* Custom Utilities */
-.hero-gradient {
-  background: linear-gradient(to bottom, rgba(0,0,0,0.4) 0%, rgba(0,0,0,0.6) 100%);
-}
-
-.text-gradient {
-  background: linear-gradient(135deg, var(--color-forest) 0%, var(--color-sky) 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--color-zinc-700);
 }
 
 /* Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 10px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-stone-100);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--color-forest);
-  border-radius: 5px;
+  background: var(--color-zinc-300);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-sky);
+  background: var(--color-zinc-400);
 }
 
 /* Accessibility */
@@ -144,35 +153,29 @@ a:hover {
 }
 
 *:focus-visible {
-  outline: 2px solid var(--color-forest);
+  outline: 2px solid var(--color-zinc-900);
   outline-offset: 2px;
 }
 
-/* Animations */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Glass Morphism Utilities */
+.glass-panel {
+  background: var(--glass-light);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
+.glass-dark {
+  background: var(--glass-dark);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.animate-fade-in-up {
-  animation: fadeInUp 0.8s ease-out;
-}
-
-.animate-float {
-  animation: float 3s ease-in-out infinite;
+/* Uppercase Label Utility */
+.uppercase-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
 }

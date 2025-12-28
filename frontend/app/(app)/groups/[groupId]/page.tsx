@@ -109,135 +109,139 @@ export default function GroupDetailPage({
   const tripCount = group._count?.trips || 0;
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <Button
-          variant="ghost"
-          onClick={() => router.back()}
-          className="mb-4 gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back
-        </Button>
-      </div>
+    <div className="-m-4 sm:-m-6 lg:-m-8">
+      {/* Hero Cover Image */}
+      <div className="relative h-[500px] w-full overflow-hidden">
+        {group.imageUrl ? (
+          <Image
+            src={group.imageUrl}
+            alt={group.name}
+            fill
+            className="object-cover"
+            sizes="100vw"
+            priority
+            quality={90}
+          />
+        ) : (
+          <div className="absolute inset-0 bg-stone-100 flex items-center justify-center">
+            <Users className="h-32 w-32 text-stone-300" />
+          </div>
+        )}
 
-      {/* Group Header Card */}
-      <Card>
-        <CardContent className="p-0">
-          {/* Cover Image */}
-          {group.imageUrl ? (
-            <div className="relative h-64 w-full rounded-t-xl overflow-hidden">
-              <Image
-                src={group.imageUrl}
-                alt={group.name}
-                fill
-                className="object-cover"
-                sizes="100vw"
-                priority
-              />
-            </div>
-          ) : (
-            <div className="relative h-64 w-full rounded-t-xl overflow-hidden bg-gradient-to-br from-primary/20 via-sky/20 to-golden/20 flex items-center justify-center">
-              <Users className="h-24 w-24 text-primary/40" />
-            </div>
-          )}
+        {/* Dark gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/80" />
 
-          {/* Group Info */}
-          <div className="p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex-1">
-                <h1 className="text-3xl font-serif font-bold text-dark mb-2">
-                  {group.name}
-                </h1>
-                {group.description && (
-                  <p className="text-stone-600">{group.description}</p>
-                )}
-              </div>
-              {isAdmin && (
-                <Button
-                  variant="outline"
-                  onClick={() => router.push(`/groups/${group.id}/settings`)}
-                  className="gap-2"
-                >
-                  <Settings className="h-4 w-4" />
-                  Settings
-                </Button>
-              )}
-            </div>
+        {/* Back button - top left */}
+        <div className="absolute top-8 left-8">
+          <Button
+            variant="secondary"
+            onClick={() => router.back()}
+            className="gap-2 backdrop-blur-md bg-white/10 border-white/20 text-white hover:bg-white/20"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+        </div>
 
-            {/* Stats */}
-            <div className="flex items-center gap-6 text-sm text-stone-600">
+        {/* Settings button - top right */}
+        {isAdmin && (
+          <div className="absolute top-8 right-8">
+            <Button
+              variant="secondary"
+              onClick={() => router.push(`/groups/${group.id}/settings`)}
+              className="gap-2 backdrop-blur-md bg-white/10 border-white/20 text-white hover:bg-white/20"
+            >
+              <Settings className="h-4 w-4" />
+              Settings
+            </Button>
+          </div>
+        )}
+
+        {/* Group name overlay - bottom */}
+        <div className="absolute bottom-0 left-0 right-0 p-12">
+          <div className="container mx-auto px-6">
+            <h1 className="font-serif text-6xl font-semibold text-white mb-4 tracking-tight">
+              {group.name}
+            </h1>
+            {group.description && (
+              <p className="text-xl text-white/80 mb-6 max-w-3xl font-light leading-relaxed">
+                {group.description}
+              </p>
+            )}
+
+            {/* Stats inline */}
+            <div className="flex items-center gap-8 text-white/90">
               <div className="flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                <span>
+                <Users className="h-5 w-5" />
+                <span className="text-lg font-light">
                   {memberCount} {memberCount === 1 ? 'member' : 'members'}
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4" />
-                <span>
+                <Calendar className="h-5 w-5" />
+                <span className="text-lg font-light">
                   {tripCount} {tripCount === 1 ? 'trip' : 'trips'}
                 </span>
               </div>
               {currentMember && (
-                <div className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium">
+                <div className="px-4 py-1.5 rounded-full backdrop-blur-md bg-white/10 border border-white/20 text-white text-sm font-medium uppercase tracking-wide">
                   {currentMember.role}
                 </div>
               )}
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Members Section */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
+      {/* Main Content */}
+      <div className="container mx-auto px-6 lg:px-8 py-16 space-y-16">
+        {/* Members Section */}
+        <div>
+          <div className="flex items-start justify-between mb-8">
             <div>
-              <CardTitle>Members</CardTitle>
-              <CardDescription>
-                {memberCount} {memberCount === 1 ? 'person' : 'people'} in this
-                group
-              </CardDescription>
+              <h2 className="font-serif text-3xl font-semibold text-stone-900 mb-2 tracking-tight">
+                Travel Crew
+              </h2>
+              <p className="text-base text-stone-600 font-light">
+                {memberCount} {memberCount === 1 ? 'person' : 'people'} in this group
+              </p>
             </div>
             {isAdmin && (
-              <Button variant="outline" className="gap-2">
-                <UserPlus className="h-4 w-4" />
+              <Button variant="primary" size="lg" className="gap-2">
+                <UserPlus className="h-5 w-5" />
                 Add Member
               </Button>
             )}
           </div>
-        </CardHeader>
-        <CardContent>
+
           {membersLoading ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="h-16 bg-stone-100 rounded animate-pulse" />
+                <div key={i} className="h-20 bg-stone-100 rounded-2xl animate-pulse" />
               ))}
             </div>
           ) : members && members.length > 0 ? (
-            <div className="space-y-3">
+            <div className="space-y-4">
               {members.map((member) => (
                 <div
                   key={member.id}
-                  className="flex items-center justify-between p-4 rounded-lg border border-stone-200 hover:bg-stone-50 transition-colors"
+                  className="flex items-center justify-between p-6 rounded-2xl border border-stone-200/50 bg-white shadow-soft hover:shadow-hover transition-all duration-300"
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <span className="text-primary font-medium text-sm">
+                  <div className="flex items-center gap-4">
+                    <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center">
+                      <span className="text-primary font-semibold text-lg">
                         {member.user.name.charAt(0).toUpperCase()}
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium text-dark">{member.user.name}</p>
-                      <p className="text-sm text-stone-500">
+                      <p className="font-semibold text-stone-900 text-base">{member.user.name}</p>
+                      <p className="text-sm text-stone-500 font-light">
                         {member.user.email}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-stone-600 font-medium">
+                    <span className="px-3 py-1.5 rounded-full bg-stone-100 text-stone-700 text-xs font-medium uppercase tracking-wide">
                       {member.role}
                     </span>
                   </div>
@@ -251,57 +255,59 @@ export default function GroupDetailPage({
               description="Add members to start collaborating on trips."
             />
           )}
-        </CardContent>
-      </Card>
+        </div>
 
-      {/* Danger Zone */}
-      <Card className="border-red-200">
-        <CardHeader>
-          <CardTitle className="text-red-600">Danger Zone</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {!isOwner && (
-            <div className="flex items-center justify-between p-4 rounded-lg border border-stone-200">
-              <div>
-                <p className="font-medium text-dark">Leave Group</p>
-                <p className="text-sm text-stone-600">
-                  Remove yourself from this group
-                </p>
+        {/* Danger Zone */}
+        <div className="pt-8 border-t border-stone-200">
+          <h2 className="font-serif text-2xl font-semibold text-red-600 mb-6 tracking-tight">
+            Danger Zone
+          </h2>
+          <div className="space-y-4">
+            {!isOwner && (
+              <div className="flex items-center justify-between p-6 rounded-2xl border border-stone-200/50 bg-white">
+                <div>
+                  <p className="font-semibold text-stone-900 mb-1">Leave Group</p>
+                  <p className="text-sm text-stone-600 font-light">
+                    Remove yourself from this group
+                  </p>
+                </div>
+                <Button
+                  variant="destructive"
+                  size="lg"
+                  onClick={handleLeave}
+                  loading={isLeaving}
+                  className="gap-2"
+                >
+                  <LogOut className="h-5 w-5" />
+                  Leave
+                </Button>
               </div>
-              <Button
-                variant="destructive"
-                onClick={handleLeave}
-                loading={isLeaving}
-                className="gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                Leave
-              </Button>
-            </div>
-          )}
-          {isOwner && (
-            <div className="flex items-center justify-between p-4 rounded-lg border border-red-200 bg-red-50">
-              <div>
-                <p className="font-medium text-red-900">Delete Group</p>
-                <p className="text-sm text-red-700">
-                  {showDeleteConfirm
-                    ? 'Click again to confirm deletion'
-                    : 'Permanently delete this group and all its data'}
-                </p>
+            )}
+            {isOwner && (
+              <div className="flex items-center justify-between p-6 rounded-2xl border border-red-200 bg-red-50">
+                <div>
+                  <p className="font-semibold text-red-900 mb-1">Delete Group</p>
+                  <p className="text-sm text-red-700 font-light">
+                    {showDeleteConfirm
+                      ? 'Click again to confirm deletion'
+                      : 'Permanently delete this group and all its data'}
+                  </p>
+                </div>
+                <Button
+                  variant="destructive"
+                  size="lg"
+                  onClick={handleDelete}
+                  loading={isDeleting}
+                  className="gap-2"
+                >
+                  <Trash2 className="h-5 w-5" />
+                  {showDeleteConfirm ? 'Confirm Delete' : 'Delete'}
+                </Button>
               </div>
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-                loading={isDeleting}
-                className="gap-2"
-              >
-                <Trash2 className="h-4 w-4" />
-                {showDeleteConfirm ? 'Confirm Delete' : 'Delete'}
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

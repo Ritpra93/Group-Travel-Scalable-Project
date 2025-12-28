@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils/cn';
 // ============================================================================
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'destructive';
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'ghost-dark' | 'destructive';
   size?: 'sm' | 'md' | 'lg';
   loading?: boolean;
   fullWidth?: boolean;
@@ -35,25 +35,27 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     },
     ref
   ) => {
-    // Variant styles
-    const variants = {
+    // Variant styles - zinc palette
+    const variants: Record<NonNullable<typeof variant>, string> = {
       primary:
-        'bg-primary text-white hover:bg-primary/90 focus:ring-primary/50',
+        'bg-zinc-900 text-white hover:bg-black focus:ring-zinc-400 shadow-sm rounded-md',
       secondary:
-        'bg-secondary text-white hover:bg-secondary/90 focus:ring-secondary/50',
+        'border border-zinc-200 bg-white text-zinc-700 hover:bg-zinc-50 focus:ring-zinc-300 shadow-sm rounded-md',
       outline:
-        'border-2 border-stone-300 bg-transparent text-brown hover:bg-stone-50 focus:ring-stone-300',
+        'border border-zinc-200 bg-transparent text-zinc-700 hover:bg-zinc-50 focus:ring-zinc-300 rounded-md',
       ghost:
-        'bg-transparent text-brown hover:bg-stone-100 focus:ring-stone-300',
+        'bg-transparent text-zinc-600 hover:bg-zinc-100 focus:ring-zinc-300 rounded-md',
+      'ghost-dark':
+        'bg-transparent text-white hover:bg-white/10 focus:ring-white/20 rounded-md',
       destructive:
-        'bg-red-600 text-white hover:bg-red-700 focus:ring-red-500/50',
+        'bg-rose-500 text-white hover:bg-rose-600 focus:ring-rose-500/50 shadow-sm rounded-md',
     };
 
-    // Size styles
+    // Size styles - compact and clean
     const sizes = {
       sm: 'px-3 py-1.5 text-sm',
-      md: 'px-4 py-2 text-base',
-      lg: 'px-6 py-3 text-lg',
+      md: 'px-4 py-2 text-sm',
+      lg: 'px-4 py-2 text-sm',
     };
 
     return (
@@ -61,8 +63,8 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         className={cn(
           // Base styles
-          'inline-flex items-center justify-center gap-2 rounded-lg font-medium',
-          'transition-all duration-200',
+          'inline-flex items-center justify-center gap-2 font-medium',
+          'transition-colors duration-150',
           'focus:outline-none focus:ring-2 focus:ring-offset-2',
           'disabled:cursor-not-allowed disabled:opacity-50',
           // Variant & size

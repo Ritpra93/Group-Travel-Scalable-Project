@@ -33,17 +33,20 @@ export default function GroupsPage() {
   const isSearching = search.length > 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-12">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-3xl font-serif font-bold text-dark">Groups</h1>
-          <p className="text-stone-600 mt-1">
+          <h1 className="font-serif text-5xl font-semibold text-stone-900 mb-3 tracking-tight">
+            Groups
+          </h1>
+          <p className="text-lg text-stone-600 font-light leading-relaxed">
             Manage your travel crews and adventure squads
           </p>
         </div>
         <Button
           variant="primary"
+          size="lg"
           onClick={() => router.push('/groups/new')}
           className="gap-2"
         >
@@ -53,20 +56,22 @@ export default function GroupsPage() {
       </div>
 
       {/* Search Bar */}
-      <SearchBar
-        placeholder="Search groups..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        onClear={() => setSearch('')}
-      />
+      <div className="max-w-2xl">
+        <SearchBar
+          placeholder="Search groups..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          onClear={() => setSearch('')}
+        />
+      </div>
 
       {/* Loading State */}
       {isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
-              className="h-80 rounded-xl bg-stone-100 animate-pulse"
+              className="h-96 rounded-2xl bg-stone-100 animate-pulse"
             />
           ))}
         </div>
@@ -109,7 +114,7 @@ export default function GroupsPage() {
 
       {/* Groups Grid */}
       {!isLoading && !error && hasGroups && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {groups.map((group) => (
             <GroupCard key={group.id} group={group} />
           ))}
@@ -118,8 +123,8 @@ export default function GroupsPage() {
 
       {/* Pagination Info */}
       {!isLoading && !error && hasGroups && data && (
-        <div className="flex items-center justify-between pt-4 border-t border-stone-200">
-          <p className="text-sm text-stone-600">
+        <div className="flex items-center justify-between pt-8 mt-8 border-t border-stone-200">
+          <p className="text-sm text-stone-500 font-light">
             Showing {groups.length} of {data.pagination?.total || groups.length} groups
           </p>
         </div>
