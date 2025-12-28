@@ -44,7 +44,33 @@ export async function getTrip(tripId: string): Promise<Trip> {
  * Create new trip
  */
 export async function createTrip(data: CreateTripDTO): Promise<Trip> {
-  const response = await apiClient.post('/trips', data);
+  // Transform frontend field names to match backend expectations
+  const { budget, description, imageUrl, ...rest } = data as any;
+
+  // Build backend data - only include totalBudget if it's a valid number
+  const backendData: any = {
+    ...rest,
+    currency: 'USD', // Default currency
+  };
+
+  // Only add totalBudget if budget is a valid number (not NaN, not undefined)
+  if (typeof budget === 'number' && !isNaN(budget)) {
+    backendData.totalBudget = budget;
+  }
+
+  // Only add description if it's not empty
+  if (description && description.trim() !== '') {
+    backendData.description = description;
+  }
+
+  // Only add imageUrl if it's not empty
+  if (imageUrl && imageUrl.trim() !== '') {
+    backendData.imageUrl = imageUrl;
+  }
+
+  console.log('[createTrip] Sending to backend:', backendData);
+
+  const response = await apiClient.post('/trips', backendData);
   return response.data.data;
 }
 

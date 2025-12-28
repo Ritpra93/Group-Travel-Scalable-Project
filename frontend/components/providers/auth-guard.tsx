@@ -19,24 +19,27 @@ export function AuthGuard({ children }: AuthGuardProps) {
   const { isAuthenticated, isLoading } = useAuthStore();
 
   useEffect(() => {
+    // TEMPORARILY DISABLED TO FIX REDIRECT LOOP
+    // TODO: Fix auth store isLoading state
+
     // Wait for hydration
-    if (isLoading) return;
+    // if (isLoading) return;
 
     // Protected routes
-    const protectedRoutes = ['/dashboard', '/groups', '/trips', '/invitations', '/settings', '/profile'];
-    const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
+    // const protectedRoutes = ['/dashboard', '/groups', '/trips', '/invitations', '/settings', '/profile'];
+    // const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route));
 
     // Auth routes (login, register)
-    const authRoutes = ['/login', '/register'];
-    const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
+    // const authRoutes = ['/login', '/register'];
+    // const isAuthRoute = authRoutes.some(route => pathname.startsWith(route));
 
-    if (isProtectedRoute && !isAuthenticated) {
-      // Redirect to login if trying to access protected route without auth
-      router.push('/login');
-    } else if (isAuthRoute && isAuthenticated) {
-      // Redirect to dashboard if trying to access auth pages while authenticated
-      router.push('/dashboard');
-    }
+    // if (isProtectedRoute && !isAuthenticated) {
+    //   // Redirect to login if trying to access protected route without auth
+    //   router.push('/login');
+    // } else if (isAuthRoute && isAuthenticated) {
+    //   // Redirect to dashboard if trying to access auth pages while authenticated
+    //   router.push('/dashboard');
+    // }
   }, [isAuthenticated, isLoading, pathname, router]);
 
   // Show loading state during hydration

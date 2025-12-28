@@ -6,6 +6,8 @@
 'use client';
 
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { useGroups } from '@/lib/api/hooks/use-groups';
+import { useTrips } from '@/lib/api/hooks/use-trips';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
 import { Plus, MapPin, Users, Calendar } from 'lucide-react';
@@ -13,11 +15,18 @@ import { Plus, MapPin, Users, Calendar } from 'lucide-react';
 export default function DashboardPage() {
   const { user } = useAuthStore();
 
-  // Placeholder data - will be replaced with real API calls
+  // Fetch real data
+  const { data: groupsData, isLoading: isLoadingGroups } = useGroups({ limit: 100 });
+  const { data: tripsData, isLoading: isLoadingTrips } = useTrips({ limit: 100 });
+
+  const totalGroups = groupsData?.pagination?.total ?? 0;
+  const totalTrips = tripsData?.pagination?.total ?? 0;
+  const upcomingTrips = tripsData?.data?.filter((t: any) => t.status === 'CONFIRMED').length ?? 0;
+
   const stats = [
-    { name: 'Total Trips', value: '0', icon: MapPin, color: 'bg-primary' },
-    { name: 'Groups', value: '0', icon: Users, color: 'bg-secondary' },
-    { name: 'Upcoming', value: '0', icon: Calendar, color: 'bg-accent' },
+    { name: 'Total Trips', value: String(totalTrips), icon: MapPin, color: 'bg-primary' },
+    { name: 'Groups', value: String(totalGroups), icon: Users, color: 'bg-secondary' },
+    { name: 'Upcoming', value: String(upcomingTrips), icon: Calendar, color: 'bg-accent' },
   ];
 
   return (

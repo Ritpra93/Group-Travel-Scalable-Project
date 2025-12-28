@@ -120,7 +120,7 @@ export default function GroupsPage() {
       {!isLoading && !error && hasGroups && data && (
         <div className="flex items-center justify-between pt-4 border-t border-stone-200">
           <p className="text-sm text-stone-600">
-            Showing {groups.length} of {data.total} groups
+            Showing {groups.length} of {data.pagination?.total || groups.length} groups
           </p>
         </div>
       )}

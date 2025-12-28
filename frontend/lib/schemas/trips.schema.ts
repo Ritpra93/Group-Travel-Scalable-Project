@@ -14,7 +14,7 @@ import { z } from 'zod';
  */
 export const createTripSchema = z
   .object({
-    groupId: z.string().uuid('Must select a valid group'),
+    groupId: z.string().min(1, 'Must select a valid group'),
     name: z
       .string()
       .min(2, 'Trip name must be at least 2 characters')
