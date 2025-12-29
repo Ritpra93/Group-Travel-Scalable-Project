@@ -44,7 +44,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="flex-1 flex flex-col min-w-0 bg-white relative">
+    <main className="flex-1 flex flex-col bg-white relative overflow-hidden">
       {/* Header - Absolute positioned glass panels */}
       <header className="absolute top-0 left-0 right-0 z-20 px-8 py-6 flex justify-between items-start pointer-events-none">
         {/* Left: Online status */}
@@ -93,9 +93,9 @@ export default function DashboardPage() {
 
         {/* Dashboard Content */}
         <div className="bg-zinc-50 min-h-screen">
-          <div className="max-w-6xl mx-auto px-6 lg:px-10 -mt-10 relative z-30">
-            {/* Quick Actions Grid (3 cols) */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="max-w-7xl mx-auto px-6 lg:px-10 -mt-10 relative z-30 pb-20">
+            {/* Quick Actions Grid (3 cols) - Generous spacing */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
               <Link href="/trips/new">
                 <QuickActionCard icon={Plus} title="Create Trip" description="Plan a new journey" />
               </Link>
@@ -113,8 +113,8 @@ export default function DashboardPage() {
               </Link>
             </div>
 
-            {/* Featured Trip Stats (4 cols) */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+            {/* Featured Trip Stats (4 cols) - Strong visual break */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
               <StatCard
                 label="Total Budget"
                 value="$3,240"
@@ -127,12 +127,12 @@ export default function DashboardPage() {
               <StatCard label="Add Expense" variant="action" value="Add Expense" icon={Plus} />
             </div>
 
-            {/* Main Grid (2/3 + 1/3) */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 pb-12">
+            {/* Main Grid (2/3 + 1/3) - Editorial spacing */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Left Column: Trip/Group Overview Cards */}
-              <div className="lg:col-span-2 space-y-6">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-normal text-zinc-900 tracking-tight">Your Trips</h3>
+              <div className="lg:col-span-2 space-y-10">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-xl font-light text-zinc-900 tracking-tight">Your Trips</h3>
                   <Link
                     href="/trips"
                     className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
@@ -142,19 +142,19 @@ export default function DashboardPage() {
                 </div>
 
                 {trips.length > 0 ? (
-                  <div className="grid gap-6">
+                  <div className="space-y-6">
                     {trips.slice(0, 3).map((trip: any) => (
                       <TripCard key={trip.id} trip={trip} />
                     ))}
                   </div>
                 ) : (
-                  <div className="bg-white rounded-lg border border-zinc-200 p-12 text-center">
-                    <p className="text-zinc-500">No trips yet. Create your first trip!</p>
+                  <div className="bg-white rounded-xl border border-zinc-200 p-16 text-center">
+                    <p className="text-zinc-500 text-base">No trips yet. Create your first trip!</p>
                   </div>
                 )}
 
-                <div className="flex items-center justify-between mt-8">
-                  <h3 className="text-lg font-normal text-zinc-900 tracking-tight">Your Groups</h3>
+                <div className="flex items-center justify-between mb-6 pt-4">
+                  <h3 className="text-xl font-light text-zinc-900 tracking-tight">Your Groups</h3>
                   <Link
                     href="/groups"
                     className="text-sm text-zinc-500 hover:text-zinc-900 transition-colors"
@@ -164,27 +164,27 @@ export default function DashboardPage() {
                 </div>
 
                 {groups.length > 0 ? (
-                  <div className="grid gap-4">
+                  <div className="space-y-5">
                     {groups.slice(0, 2).map((group: any) => (
                       <Link
                         key={group.id}
                         href={`/groups/${group.id}`}
-                        className="bg-white rounded-lg border border-zinc-200 p-6 hover:border-zinc-300 hover:shadow-md transition-all"
+                        className="block bg-white rounded-xl border border-zinc-200 p-8 hover:border-zinc-300 hover:shadow-sm transition-all"
                       >
-                        <h4 className="font-medium text-zinc-900 mb-1">{group.name}</h4>
-                        <p className="text-sm text-zinc-500">{group.description || 'No description'}</p>
+                        <h4 className="font-medium text-zinc-900 mb-3 text-lg leading-tight">{group.name}</h4>
+                        <p className="text-base text-zinc-500 leading-relaxed">{group.description || 'No description'}</p>
                       </Link>
                     ))}
                   </div>
                 ) : (
-                  <div className="bg-white rounded-lg border border-zinc-200 p-12 text-center">
-                    <p className="text-zinc-500">No groups yet. Create your first group!</p>
+                  <div className="bg-white rounded-xl border border-zinc-200 p-16 text-center">
+                    <p className="text-zinc-500 text-base">No groups yet. Create your first group!</p>
                   </div>
                 )}
               </div>
 
-              {/* Right Column: Widgets */}
-              <div className="space-y-6">
+              {/* Right Column: Widgets - Quieter, secondary */}
+              <div className="space-y-8">
                 <PollWidget
                   question="Dinner in Reykjavík?"
                   options={MOCK_POLL_OPTIONS}

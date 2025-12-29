@@ -28,30 +28,30 @@ export function PollWidget({ question, options, timeRemaining, onVote }: PollWid
   const maxVotes = Math.max(...options.map((opt) => opt.votes));
 
   return (
-    <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-6 relative overflow-hidden">
+    <div className="bg-white rounded-xl border border-zinc-200 shadow-sm p-7 relative overflow-hidden">
       {/* Background icon */}
       <div className="absolute top-0 right-0 p-3 opacity-5">
         <Vote className="w-20 h-20 rotate-12" />
       </div>
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-4 relative z-10">
+      <div className="flex items-center justify-between mb-6 relative z-10">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse" />
-          <h3 className="text-sm font-medium text-zinc-900">Active Poll</h3>
+          <h3 className="text-base font-medium text-zinc-900">Active Poll</h3>
         </div>
         {timeRemaining && (
-          <span className="text-[10px] bg-zinc-100 text-zinc-500 px-2 py-1 rounded">
+          <span className="text-xs bg-zinc-100 text-zinc-500 px-2.5 py-1 rounded">
             Ends in {timeRemaining}
           </span>
         )}
       </div>
 
       {/* Question */}
-      <h4 className="text-sm font-semibold text-zinc-900 mb-3">{question}</h4>
+      <h4 className="text-base font-semibold text-zinc-900 mb-6 leading-relaxed">{question}</h4>
 
       {/* Options */}
-      <div className="space-y-3 relative z-10">
+      <div className="space-y-5 relative z-10">
         {options.map((option) => {
           const percentage = totalVotes > 0 ? (option.votes / totalVotes) * 100 : 0;
           const isLeading = option.votes === maxVotes && option.votes > 0;
@@ -60,12 +60,12 @@ export function PollWidget({ question, options, timeRemaining, onVote }: PollWid
             <div
               key={option.id}
               className={cn(
-                'space-y-1 group cursor-pointer',
+                'space-y-2 group cursor-pointer',
                 isLeading ? 'opacity-100' : 'opacity-70 hover:opacity-100'
               )}
               onClick={() => onVote?.(option.id)}
             >
-              <div className="flex justify-between text-xs mb-1">
+              <div className="flex justify-between text-sm mb-2">
                 <span className="font-medium text-zinc-700">{option.label}</span>
                 <span className="text-zinc-500">{option.votes} votes</span>
               </div>
@@ -103,7 +103,7 @@ export function PollWidget({ question, options, timeRemaining, onVote }: PollWid
         variant="secondary"
         size="sm"
         fullWidth
-        className="mt-5 text-xs font-medium"
+        className="mt-6 text-xs font-medium"
         onClick={() => onVote?.(options[0]?.id)}
       >
         Cast Vote

@@ -70,8 +70,8 @@ export function ItineraryTimeline({ days }: ItineraryTimelineProps) {
                 <div
                   key={idx}
                   className={cn(
-                    'relative pl-8 group cursor-pointer',
-                    idx < dayData.events.length - 1 && 'mb-8'
+                    'relative pl-10 group cursor-pointer',
+                    idx < dayData.events.length - 1 && 'mb-10'
                   )}
                 >
                   {/* Timeline dot */}
@@ -80,12 +80,12 @@ export function ItineraryTimeline({ days }: ItineraryTimelineProps) {
                   {/* Event content */}
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
-                      <span className="text-xs font-medium text-zinc-400 block mb-0.5">
+                      <span className="text-sm font-medium text-zinc-400 block mb-1">
                         {event.time}
                       </span>
-                      <h4 className="text-base font-medium text-zinc-900">{event.title}</h4>
+                      <h4 className="text-base font-medium text-zinc-900 leading-tight">{event.title}</h4>
                       {event.description && (
-                        <p className="text-sm text-zinc-500 mt-1 leading-relaxed">
+                        <p className="text-base text-zinc-500 mt-2 leading-relaxed">
                           {event.description}
                         </p>
                       )}

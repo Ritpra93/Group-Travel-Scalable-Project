@@ -27,7 +27,7 @@ export function QuickActionCard({
     <button
       onClick={onClick}
       className={cn(
-        'bg-white p-4 rounded-lg border shadow-sm flex items-center gap-4 hover:shadow-md transition-all group text-left w-full relative overflow-hidden',
+        'bg-white p-5 rounded-xl border shadow-sm flex items-center gap-4 hover:shadow-md transition-all group text-left w-full relative overflow-hidden',
         variant === 'default' && 'border-zinc-200 hover:border-zinc-300',
         variant === 'highlight' && 'border-zinc-200 hover:border-orange-300'
       )}
@@ -40,7 +40,7 @@ export function QuickActionCard({
       {/* Icon */}
       <div
         className={cn(
-          'w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-colors relative z-10',
+          'w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-colors relative z-10',
           variant === 'default' && 'bg-zinc-100 text-zinc-900 group-hover:bg-zinc-900 group-hover:text-white',
           variant === 'highlight' && 'bg-orange-50 text-orange-600 group-hover:bg-orange-500 group-hover:text-white'
         )}
@@ -50,15 +50,15 @@ export function QuickActionCard({
 
       {/* Content */}
       <div className="flex-1 min-w-0 relative z-10">
-        <div className="flex items-center gap-2">
-          <span className="block text-sm font-semibold text-zinc-900">{title}</span>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="block text-base font-semibold text-zinc-900">{title}</span>
           {badge && (
-            <span className="px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[10px] font-bold">
+            <span className="px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-xs font-bold">
               {badge}
             </span>
           )}
         </div>
-        <span className="text-xs text-zinc-500">{description}</span>
+        <span className="text-sm text-zinc-500 leading-relaxed">{description}</span>
       </div>
     </button>
   );

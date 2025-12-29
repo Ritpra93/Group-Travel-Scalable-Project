@@ -35,7 +35,31 @@ export function createApp(): Application {
   // CORS - Cross-Origin Resource Sharing
   app.use(
     cors({
-      origin: env.FRONTEND_URL,
+      origin: (origin, callback) => {
+        // In development: allow any localhost or 127.0.0.1 on any port
+        if (env.NODE_ENV === 'development') {
+          // Allow requests with no origin (like mobile apps, Postman, curl)
+          if (!origin) {
+            callback(null, true);
+            return;
+          }
+
+          // Allow any localhost or 127.0.0.1 port
+          const localhostPattern = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+          if (localhostPattern.test(origin)) {
+            callback(null, true);
+            return;
+          }
+        }
+
+        // In production or for non-localhost origins: strict whitelist
+        const allowedOrigins = env.FRONTEND_URL.split(',').map(url => url.trim());
+        if (allowedOrigins.includes(origin || '')) {
+          callback(null, true);
+        } else {
+          callback(new Error('Not allowed by CORS'));
+        }
+      },
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-ID'],

@@ -82,14 +82,14 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-white flex">
       {/* Sidebar */}
-      <aside className="w-[70px] lg:w-64 bg-white border-r border-zinc-200 flex flex-col transition-all duration-300 z-30 fixed h-full">
+      <aside className="w-[70px] lg:w-64 bg-zinc-50/80 backdrop-blur-xl border-r border-zinc-100/50 flex flex-col transition-all duration-300 z-30 fixed h-full">
         {/* Logo Area */}
         <div className="h-16 flex items-center justify-center lg:justify-start lg:px-6 border-b border-zinc-100">
           <div className="w-8 h-8 bg-zinc-900 rounded-lg flex items-center justify-center text-white shadow-lg shadow-zinc-900/20">
             <MountainSnow className="w-4 h-4" />
           </div>
           <span className="ml-3 font-semibold tracking-tight hidden lg:block text-zinc-900">
-            Aura
+            Wanderlust
           </span>
         </div>
 
