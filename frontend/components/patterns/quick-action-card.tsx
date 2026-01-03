@@ -25,6 +25,7 @@ export function QuickActionCard({
 }: QuickActionCardProps) {
   return (
     <button
+      data-testid="action-card"
       onClick={onClick}
       className={cn(
         'bg-white p-5 rounded-xl border shadow-sm flex items-center gap-4 hover:shadow-md transition-all group text-left w-full relative overflow-hidden',

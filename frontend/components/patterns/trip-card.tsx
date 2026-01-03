@@ -54,7 +54,7 @@ export function TripCard({ trip }: TripCardProps) {
 
   return (
     <Link href={`/trips/${trip.id}`}>
-      <Card clickable hover className="h-full overflow-hidden group border border-zinc-200/50">
+      <Card data-testid="content-card" clickable hover className="h-full overflow-hidden group border border-zinc-200/50">
         {/* Hero Image with Overlay Text */}
         <div className="relative h-72 w-full overflow-hidden">
           {trip.imageUrl ? (

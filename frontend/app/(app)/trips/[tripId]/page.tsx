@@ -141,7 +141,7 @@ export default function TripDetailPage({
     <div className="bg-zinc-50 min-h-screen pb-24">
 
       {/* 1. Hero Section - Cinematic & Clean */}
-      <div className="relative h-[40vh] min-h-[400px] w-full group overflow-hidden">
+      <div className="relative h-[40vh] w-full group overflow-hidden -ml-[70px] lg:-ml-64">
         {trip.imageUrl ? (
           <Image
             src={trip.imageUrl}
@@ -160,8 +160,8 @@ export default function TripDetailPage({
         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
 
         {/* Hero Content */}
-        <div className="absolute bottom-0 left-0 right-0 p-8 sm:p-12">
-          <div className="max-w-7xl mx-auto w-full">
+        <div className="absolute bottom-0 left-0 right-0 pb-10 pt-28">
+          <div className="max-w-7xl mx-auto w-full pl-[78px] pr-8 lg:pl-[268px] lg:pr-12">
             <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6">
               <div>
                 <div className="flex items-center gap-3 mb-3">
@@ -197,10 +197,10 @@ export default function TripDetailPage({
       </div>
 
       {/* 2. Main Content Container */}
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 mt-12">
+      <div className="max-w-7xl mx-auto px-8 lg:px-12 pt-12">
 
         {/* Context Grid - Budget, Transport, Stay */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <ContentCard
             label="Total Budget"
             value={

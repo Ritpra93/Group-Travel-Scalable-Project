@@ -44,7 +44,7 @@ export default function DashboardPage() {
   };
 
   return (
-    <main className="flex-1 flex flex-col bg-white relative overflow-hidden">
+    <main className="flex-1 flex flex-col bg-white relative">
       {/* Header - Absolute positioned glass panels */}
       <header className="absolute top-0 left-0 right-0 z-20 px-8 py-6 flex justify-between items-start pointer-events-none">
         {/* Left: Online status */}
@@ -93,9 +93,9 @@ export default function DashboardPage() {
 
         {/* Dashboard Content */}
         <div className="bg-zinc-50 min-h-screen">
-          <div className="max-w-7xl mx-auto px-6 lg:px-10 -mt-10 relative z-30 pb-20">
+          <div data-testid="main-content" className="max-w-7xl mx-auto px-8 lg:px-12 pt-12 relative z-30 pb-20">
             {/* Quick Actions Grid (3 cols) - Generous spacing */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <Link href="/trips/new">
                 <QuickActionCard icon={Plus} title="Create Trip" description="Plan a new journey" />
               </Link>
@@ -114,7 +114,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Featured Trip Stats (4 cols) - Strong visual break */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
               <StatCard
                 label="Total Budget"
                 value="$3,240"

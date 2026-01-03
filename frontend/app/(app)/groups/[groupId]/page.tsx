@@ -109,9 +109,9 @@ export default function GroupDetailPage({
   const tripCount = group._count?.trips || 0;
 
   return (
-    <div className="-m-4 sm:-m-6 lg:-m-8">
+    <div>
       {/* Hero Cover Image */}
-      <div className="relative h-[500px] w-full overflow-hidden">
+      <div className="relative h-[50vh] w-full overflow-hidden -ml-[70px] lg:-ml-64">
         {group.imageUrl ? (
           <Image
             src={group.imageUrl}
@@ -158,8 +158,8 @@ export default function GroupDetailPage({
         )}
 
         {/* Group name overlay - bottom */}
-        <div className="absolute bottom-0 left-0 right-0 p-12">
-          <div className="container mx-auto px-6">
+        <div className="absolute bottom-0 left-0 right-0 pb-10 pt-28">
+          <div className="max-w-7xl mx-auto w-full pl-[78px] pr-8 lg:pl-[268px] lg:pr-12">
             <h1 className="font-serif text-6xl font-semibold text-white mb-4 tracking-tight">
               {group.name}
             </h1>
@@ -194,7 +194,7 @@ export default function GroupDetailPage({
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-6 lg:px-8 py-16 space-y-16">
+      <div className="max-w-7xl mx-auto px-8 lg:px-12 py-16 space-y-16">
         {/* Members Section */}
         <div>
           <div className="flex items-start justify-between mb-8">
