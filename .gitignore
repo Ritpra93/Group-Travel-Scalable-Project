@@ -68,9 +68,25 @@ docker/data/
 *.sqlite3
 *.db
 
-# Prisma
-prisma/migrations/
-!prisma/migrations/.gitkeep
+# Redis dump files
+*.rdb
+dump.rdb
+
+# TypeScript build info
+*.tsbuildinfo
+.tsbuildinfo
+
+# Backend build
+backend/dist/
+backend/build/
+
+# Frontend build (already covered by .next/ above, but being explicit)
+frontend/.next/
+frontend/out/
+frontend/build/
+
+# Turbo cache (if using turborepo in future)
+.turbo
 
 # Misc
 .husky/_
