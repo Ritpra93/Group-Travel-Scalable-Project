@@ -161,7 +161,8 @@ apiClient.interceptors.response.use(
         setAccessToken(null);
 
         // Redirect to login (will be handled by auth store in the future)
-        if (typeof window !== 'undefined') {
+        // Skip redirect in E2E tests (Playwright sets window.playwrightTest = true)
+        if (typeof window !== 'undefined' && !(window as any).playwrightTest) {
           window.location.href = '/login';
         }
 

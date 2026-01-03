@@ -11,11 +11,11 @@ interface BoundingBox {
 
 test.describe('Trip Overview Layout Integrity', () => {
   test.beforeEach(async ({ page }) => {
-    // Navigate to login page first (same origin) to set localStorage
-    await page.goto('http://localhost:3000/login');
+    // Inject auth state into localStorage BEFORE page loads
+    await page.addInitScript(() => {
+      // Set flag to prevent redirects in API client
+      (window as any).playwrightTest = true;
 
-    // Set auth state in localStorage
-    await page.evaluate(() => {
       const authState = {
         state: {
           user: {
@@ -26,16 +26,23 @@ test.describe('Trip Overview Layout Integrity', () => {
             updatedAt: new Date().toISOString()
           },
           accessToken: 'mock-token-for-testing',
-          isAuthenticated: true
+          isAuthenticated: true,
+          isLoading: false  // Explicitly set to prevent loading state
         },
         version: 0
       };
       localStorage.setItem('wanderlust-auth', JSON.stringify(authState));
     });
 
-    // Now navigate to dashboard with auth already set
+    // Now navigate to dashboard - auth will be available immediately
     await page.goto('http://localhost:3000/dashboard', {
       waitUntil: 'networkidle'
+    });
+
+    // Wait for Zustand rehydration to complete (loading spinner to disappear)
+    const loadingIndicator = page.locator('[data-testid="auth-loading"]');
+    await loadingIndicator.waitFor({ state: 'detached', timeout: 5000 }).catch(() => {
+      // If no loading indicator, rehydration already complete
     });
 
     // Wait for hero element to be visible
@@ -66,7 +73,9 @@ test.describe('Trip Overview Layout Integrity', () => {
     expect(contentBox).not.toBeNull();
 
     // Content must start BELOW hero (never overlap)
-    expect(contentBox!.y).toBeGreaterThan(heroBox!.y + heroBox!.height - 1);
+    // boundingBox returns {x, y, width, height}, so bottom = y + height
+    const heroBottom = heroBox!.y + heroBox!.height;
+    expect(contentBox!.y).toBeGreaterThan(heroBottom - 1);
   });
 
   test('sidebar establishes a fixed content gutter', async ({ page }) => {
@@ -149,8 +158,10 @@ test.describe('Trip Overview Layout Integrity', () => {
       })
     );
 
+    // boundingBox returns {x, y, width, height}, so bottom = y + height
+    const heroBottom = heroBox!.y + heroBox!.height;
     for (const box of cardBoxes) {
-      expect(box.top).toBeGreaterThan(heroBox!.bottom - 1);
+      expect(box.top).toBeGreaterThan(heroBottom - 1);
     }
   });
 });

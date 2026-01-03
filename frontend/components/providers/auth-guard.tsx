@@ -45,7 +45,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
   // Show loading state during hydration
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center" data-testid="auth-loading">
         <div className="text-center">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-primary border-t-transparent mx-auto mb-4" />
           <p className="text-stone-600">Loading...</p>
