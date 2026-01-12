@@ -88,14 +88,14 @@ export default function DashboardPage() {
 
       {/* Scrollable Content */}
       <div className="flex-1 overflow-y-auto">
-        {/* Featured Trip Hero (50vh) */}
+        {/* Featured Trip Hero (40vh) */}
         <FeaturedTripHero trip={featuredTrip} weather={{ temp: '4°C', location: 'Reykjavík' }} />
 
         {/* Dashboard Content */}
-        <div className="bg-zinc-50 min-h-screen">
-          <div data-testid="main-content" className="max-w-7xl mx-auto px-8 lg:px-12 pt-12 relative z-30 pb-20">
+        <div className="bg-zinc-50">
+          <div data-testid="main-content" className="max-w-7xl mx-auto px-6 lg:px-8 pt-12 relative z-30 pb-20">
             {/* Quick Actions Grid (3 cols) - Generous spacing */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
               <Link href="/trips/new">
                 <QuickActionCard icon={Plus} title="Create Trip" description="Plan a new journey" />
               </Link>
@@ -114,7 +114,7 @@ export default function DashboardPage() {
             </div>
 
             {/* Featured Trip Stats (4 cols) - Strong visual break */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-12">
               <StatCard
                 label="Total Budget"
                 value="$3,240"
@@ -128,9 +128,9 @@ export default function DashboardPage() {
             </div>
 
             {/* Main Grid (2/3 + 1/3) - Editorial spacing */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               {/* Left Column: Trip/Group Overview Cards */}
-              <div className="lg:col-span-2 space-y-10">
+              <div className="lg:col-span-2 space-y-6">
                 <div className="flex items-center justify-between mb-6">
                   <h3 className="text-xl font-light text-zinc-900 tracking-tight">Your Trips</h3>
                   <Link

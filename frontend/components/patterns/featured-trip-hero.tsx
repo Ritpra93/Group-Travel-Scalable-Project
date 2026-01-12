@@ -37,7 +37,7 @@ export function FeaturedTripHero({ trip, weather }: FeaturedTripHeroProps) {
   });
 
   return (
-    <div data-testid="hero" className="relative w-full h-[50vh] bg-zinc-900 overflow-hidden group -ml-[70px] lg:-ml-64">
+    <div data-testid="hero" className="relative w-full h-[40vh] bg-zinc-900 overflow-hidden group -ml-[var(--sidebar-width-mobile)] lg:-ml-[var(--sidebar-width-desktop)]">
       {/* Background overlay */}
       <div className="absolute inset-0 bg-black/20 z-10" />
 
@@ -52,7 +52,7 @@ export function FeaturedTripHero({ trip, weather }: FeaturedTripHeroProps) {
 
       {/* Bottom gradient overlay - Extended for better text visibility */}
       <div className="absolute bottom-0 left-0 w-full pb-10 pt-28 z-20 bg-gradient-to-t from-black/95 via-black/75 to-transparent">
-        <div className="max-w-7xl mx-auto w-full pl-[78px] pr-8 lg:pl-[268px] lg:pr-12">
+        <div className="max-w-7xl mx-auto w-full pl-[calc(var(--sidebar-width-mobile)+8px)] pr-6 lg:pl-[calc(var(--sidebar-width-desktop)+8px)] lg:pr-8">
           <div className="flex items-end justify-between gap-8">
             {/* Left: Trip Info */}
             <div className="flex-1 min-w-0 pb-0">

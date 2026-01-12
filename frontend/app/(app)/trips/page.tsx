@@ -45,8 +45,9 @@ export default function TripsPage() {
   const isFiltering = search.length > 0 || statusFilter !== undefined;
 
   return (
-    <div className="space-y-12">
-      {/* Header */}
+    <div className="min-h-screen bg-white">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 pt-12 pb-20 space-y-6">
+        {/* Header */}
       <div className="flex items-start justify-between">
         <div>
           <h1 className="font-serif text-5xl font-semibold text-stone-900 mb-3 tracking-tight">
@@ -100,7 +101,7 @@ export default function TripsPage() {
 
       {/* Loading State */}
       {isLoading && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[...Array(6)].map((_, i) => (
             <div
               key={i}
@@ -150,7 +151,7 @@ export default function TripsPage() {
 
       {/* Trips Grid */}
       {!isLoading && !error && hasTrips && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {trips.map((trip) => (
             <TripCard key={trip.id} trip={trip} />
           ))}
@@ -165,6 +166,7 @@ export default function TripsPage() {
           </p>
         </div>
       )}
+      </div>
     </div>
   );
 }

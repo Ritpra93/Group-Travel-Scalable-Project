@@ -32,6 +32,19 @@
   --glass-dark: rgba(24, 24, 27, 0.6);
   --glass-blur: 12px;
 
+  /* Layout System - Design Tokens */
+  --sidebar-width-mobile: 70px;
+  --sidebar-width-desktop: 256px;
+
+  /* Hero Heights */
+  --hero-height-mobile: 40vh;
+  --hero-height-desktop: 40vh;
+
+  /* Container Widths */
+  --container-max-width: 80rem;
+  --container-padding-mobile: 1.5rem;
+  --container-padding-desktop: 2rem;
+
   /* Base theme */
   --background: #FAFAFA;
   --foreground: #18181B;
@@ -42,6 +55,10 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-inter);
+
+  /* Layout System - Expose to Tailwind */
+  --width-sidebar-mobile: var(--sidebar-width-mobile);
+  --width-sidebar-desktop: var(--sidebar-width-desktop);
 
   /* Zinc neutrals */
   --color-zinc-50: #FAFAFA;
