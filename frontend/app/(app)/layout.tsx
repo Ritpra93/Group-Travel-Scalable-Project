@@ -171,7 +171,11 @@ export default function AppLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 ml-[70px] lg:ml-64">{children}</main>
+      <main
+        className="flex-1 main-with-sidebar-offset"
+      >
+        {children}
+      </main>
     </div>
   );
 }

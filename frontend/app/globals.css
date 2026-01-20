@@ -196,3 +196,14 @@ a:hover {
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
+
+/* Main Content Offset for Sidebar */
+.main-with-sidebar-offset {
+  margin-left: var(--sidebar-width-mobile) !important;
+}
+
+@media (min-width: 1024px) {
+  .main-with-sidebar-offset {
+    margin-left: var(--sidebar-width-desktop) !important;
+  }
+}
