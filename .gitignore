@@ -97,3 +97,11 @@ frontend/build/
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Screenshots and reference materials
+*.png
+!frontend/public/**/*.png
+Inspiration/
+aura-inspiration/
+current-page/
+current-issues/
