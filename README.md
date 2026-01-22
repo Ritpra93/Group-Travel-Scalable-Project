@@ -256,21 +256,56 @@ npx prisma migrate reset
 npx prisma studio
 ```
 
-## 🔐 Environment Variables
+## 🔐 Environment Variables & Security Setup
 
-Backend (`.env.local`):
-- `DATABASE_URL`: PostgreSQL connection string
-- `REDIS_URL`: Redis connection string
-- `JWT_SECRET`: Secret for access tokens
-- `JWT_REFRESH_SECRET`: Secret for refresh tokens
-- `PORT`: Backend port (default: 4000)
-- `FRONTEND_URL`: Frontend URL for CORS
+### Backend Configuration
 
-Frontend (`.env.local` - create this):
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+
+2. Copy the example environment file:
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Generate secure JWT secrets:
+   ```bash
+   openssl rand -hex 32  # Copy output for JWT_SECRET
+   openssl rand -hex 32  # Copy output for JWT_REFRESH_SECRET
+   ```
+
+4. Edit `backend/.env` and replace the JWT secret placeholders with generated values
+
+5. (Optional) Add Figma personal access token if using design system integration:
+   - Obtain from: https://www.figma.com/developers/api#access-tokens
+   - Add to `backend/.env` as `FIGMA_ACCESS_TOKEN=your_token`
+
+### Frontend Configuration
+
+Create `frontend/.env.local`:
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
 NEXT_PUBLIC_WS_URL=http://localhost:4000
 ```
+
+### Environment Variables Reference
+
+Backend (`.env`):
+- `DATABASE_URL`: PostgreSQL connection string
+- `REDIS_URL`: Redis connection string
+- `JWT_SECRET`: Secret for access tokens (generate with openssl)
+- `JWT_REFRESH_SECRET`: Secret for refresh tokens (generate with openssl)
+- `PORT`: Backend port (default: 4000)
+- `FRONTEND_URL`: Frontend URL for CORS
+- `FIGMA_ACCESS_TOKEN`: (Optional) Figma API token for design integration
+
+⚠️ **Important Security Notes:**
+- Never commit `.env` files to version control
+- Generate unique secrets for each environment (dev, staging, prod)
+- Use your hosting platform's environment variables for production
+- See [SECURITY.md](SECURITY.md) for detailed security practices
 
 ## 📊 API Documentation
 
