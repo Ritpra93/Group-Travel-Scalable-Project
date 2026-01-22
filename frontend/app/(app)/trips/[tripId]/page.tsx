@@ -8,6 +8,7 @@
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import Link from 'next/link';
 import {
   ArrowLeft,
   MapPin,
@@ -23,8 +24,13 @@ import {
   MoreHorizontal,
   Cloud,
   Map as MapIcon,
+  Receipt,
+  ArrowRight,
 } from 'lucide-react';
 import { useTrip } from '@/lib/api/hooks/use-trips';
+import { useTripExpenses, useTripBalances } from '@/lib/api/hooks/use-expenses';
+import { useAuthStore } from '@/lib/stores/auth-store';
+import { ExpenseCategoryIcon, getCategoryLabel } from '@/components/patterns/expense-category-icon';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -121,13 +127,25 @@ export default function TripDetailPage({
 }) {
   const { tripId } = use(params);
   const router = useRouter();
+  const user = useAuthStore((state) => state.user);
 
   // Fetch trip
   // Note: Assuming useTrip returns the same shape. If fields are missing in backend, we handle gracefully.
   const { data: trip, isLoading, error } = useTrip(tripId);
 
+  // Fetch recent expenses
+  const { data: expensesData } = useTripExpenses(tripId, { limit: 3 });
+  const { data: balances } = useTripBalances(tripId);
+
   if (isLoading) return <div className="h-screen flex items-center justify-center text-zinc-400">Loading Aura...</div>;
   if (error || !trip) return <div>Trip not found</div>;
+
+  const recentExpenses = expensesData?.data || [];
+  const totalExpenses = recentExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
+
+  // Calculate user's balance
+  const userBalance = balances?.find((b) => b.userId === user?.id);
+  const userBalanceAmount = userBalance ? parseFloat(userBalance.balance) : 0;
 
   // Derived State
   const startDate = new Date(trip.startDate).toLocaleDateString('en-US', {
@@ -338,6 +356,66 @@ export default function TripDetailPage({
                       </span>
                     </div>
                   ))}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Expenses Widget */}
+            <div>
+              <SectionHeader
+                title="Expenses"
+                action={
+                  <Link
+                    href={`/trips/${tripId}/expenses`}
+                    className="text-xs text-zinc-400 hover:text-zinc-600 flex items-center gap-1"
+                  >
+                    View all <ArrowRight className="w-3 h-3" />
+                  </Link>
+                }
+              />
+              <Card>
+                <CardContent className="p-6">
+                  {/* Balance summary */}
+                  <div className="flex items-center justify-between mb-4 pb-4 border-b border-zinc-100">
+                    <div>
+                      <p className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Your Balance</p>
+                      <p className={`text-2xl font-light ${userBalanceAmount > 0 ? 'text-emerald-600' : userBalanceAmount < 0 ? 'text-rose-600' : 'text-zinc-500'}`}>
+                        {userBalanceAmount >= 0 ? '+' : ''}${Math.abs(userBalanceAmount).toFixed(2)}
+                      </p>
+                    </div>
+                    <Receipt className="w-5 h-5 text-zinc-300" />
+                  </div>
+
+                  {/* Recent expenses */}
+                  {recentExpenses.length > 0 ? (
+                    <div className="space-y-3">
+                      {recentExpenses.map((expense) => (
+                        <Link
+                          key={expense.id}
+                          href={`/trips/${tripId}/expenses/${expense.id}`}
+                          className="flex items-center gap-3 p-2 -mx-2 rounded-lg hover:bg-zinc-50 transition-colors"
+                        >
+                          <ExpenseCategoryIcon category={expense.category} size="sm" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-zinc-900 truncate">{expense.title}</p>
+                            <p className="text-xs text-zinc-400">{expense.payer?.name}</p>
+                          </div>
+                          <span className="text-sm font-medium text-zinc-900">
+                            ${parseFloat(expense.amount).toFixed(2)}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-zinc-400 text-center py-4">No expenses yet</p>
+                  )}
+
+                  <Link href={`/trips/${tripId}/expenses/new`}>
+                    <Button variant="outline" className="w-full mt-4 text-xs h-9">
+                      <Plus className="w-3 h-3 mr-1" />
+                      Add Expense
+                    </Button>
+                  </Link>
                 </CardContent>
               </Card>
             </div>
