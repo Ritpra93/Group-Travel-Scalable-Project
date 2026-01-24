@@ -26,9 +26,10 @@ export interface CreateExpenseDTO {
   currency?: string;
   paidAt?: string;
   receiptUrl?: string;
-  splitType: 'EQUAL' | 'CUSTOM';
+  splitType: 'EQUAL' | 'CUSTOM' | 'PERCENTAGE';
   splitWith?: string[]; // Required for EQUAL
   customSplits?: { userId: string; amount: number }[]; // Required for CUSTOM
+  percentageSplits?: { userId: string; percentage: number }[]; // Required for PERCENTAGE
 }
 
 export interface UpdateExpenseDTO {
@@ -59,6 +60,26 @@ export interface PaginatedExpensesResponse {
     total: number;
     totalPages: number;
     hasMore: boolean;
+  };
+}
+
+export interface SettlementTransaction {
+  from: {
+    userId: string;
+    userName: string;
+  };
+  to: {
+    userId: string;
+    userName: string;
+  };
+  amount: string;
+}
+
+export interface SettlementResponse {
+  settlements: SettlementTransaction[];
+  summary: {
+    totalTransactions: number;
+    totalAmount: string;
   };
 }
 
@@ -151,6 +172,20 @@ export async function getTripBalances(tripId: string): Promise<ExpenseBalance[]>
 }
 
 // ============================================================================
+// Settlements
+// ============================================================================
+
+/**
+ * Get optimal settlements to clear all debts
+ */
+export async function getTripSettlements(tripId: string): Promise<SettlementResponse> {
+  const response = await apiClient.get<ApiResponse<SettlementResponse>>(
+    `/trips/${tripId}/expenses/settlements`
+  );
+  return response.data.data!;
+}
+
+// ============================================================================
 // Exports
 // ============================================================================
 
@@ -162,4 +197,5 @@ export const expensesService = {
   deleteExpense,
   updateSplitStatus,
   getTripBalances,
+  getTripSettlements,
 };

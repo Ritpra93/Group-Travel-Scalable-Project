@@ -24,6 +24,7 @@ export const expensesKeys = {
   details: () => [...expensesKeys.all, 'detail'] as const,
   detail: (id: string) => [...expensesKeys.details(), id] as const,
   balances: (tripId: string) => [...expensesKeys.all, 'balances', tripId] as const,
+  settlements: (tripId: string) => [...expensesKeys.all, 'settlements', tripId] as const,
 };
 
 // ============================================================================
@@ -59,6 +60,17 @@ export function useTripBalances(tripId: string) {
   return useQuery({
     queryKey: expensesKeys.balances(tripId),
     queryFn: () => expensesService.getTripBalances(tripId),
+    enabled: !!tripId,
+  });
+}
+
+/**
+ * Get optimal settlements to clear all debts
+ */
+export function useTripSettlements(tripId: string) {
+  return useQuery({
+    queryKey: expensesKeys.settlements(tripId),
+    queryFn: () => expensesService.getTripSettlements(tripId),
     enabled: !!tripId,
   });
 }

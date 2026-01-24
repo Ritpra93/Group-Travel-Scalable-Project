@@ -8,7 +8,7 @@
 import { useState, useEffect } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Users, DollarSign, Check, AlertCircle } from 'lucide-react';
+import { Users, DollarSign, Check, AlertCircle, Percent } from 'lucide-react';
 import { cn } from '@/lib/utils/cn';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -72,6 +72,7 @@ export function ExpenseForm({
       splitType: 'EQUAL' as const,
       splitWith: members.map((m) => m.userId),
       customSplits: [] as { userId: string; amount: number }[],
+      percentageSplits: [] as { userId: string; percentage: number }[],
     },
     mode: 'onChange',
   });
@@ -80,6 +81,7 @@ export function ExpenseForm({
   const amount = watch('amount');
   const splitWith = watch('splitWith') || [];
   const customSplits = watch('customSplits') || [];
+  const percentageSplits = watch('percentageSplits') || [];
   const category = watch('category');
 
   // Calculate equal split amount for preview
@@ -88,6 +90,10 @@ export function ExpenseForm({
   // Calculate custom split total
   const customSplitTotal = customSplits.reduce((sum, s) => sum + (s.amount || 0), 0);
   const customSplitDifference = amount - customSplitTotal;
+
+  // Calculate percentage split total
+  const percentageSplitTotal = percentageSplits.reduce((sum, s) => sum + (s.percentage || 0), 0);
+  const percentageSplitDifference = 100 - percentageSplitTotal;
 
   // Step validation
   const validateStep = async (stepNum: number): Promise<boolean> => {
@@ -143,6 +149,19 @@ export function ExpenseForm({
     }
   };
 
+  // Update percentage split for a user
+  const updatePercentageSplit = (userId: string, percentage: number) => {
+    const current = percentageSplits;
+    const existing = current.findIndex((s) => s.userId === userId);
+    if (existing >= 0) {
+      const updated = [...current];
+      updated[existing] = { userId, percentage };
+      setValue('percentageSplits', updated);
+    } else {
+      setValue('percentageSplits', [...current, { userId, percentage }]);
+    }
+  };
+
   // Initialize custom splits when switching to CUSTOM mode
   useEffect(() => {
     if (splitType === 'CUSTOM' && customSplits.length === 0 && members.length > 0) {
@@ -153,6 +172,17 @@ export function ExpenseForm({
       );
     }
   }, [splitType, members, amount, customSplits.length, setValue]);
+
+  // Initialize percentage splits when switching to PERCENTAGE mode
+  useEffect(() => {
+    if (splitType === 'PERCENTAGE' && percentageSplits.length === 0 && members.length > 0) {
+      const equalPercentage = 100 / members.length;
+      setValue(
+        'percentageSplits',
+        members.map((m) => ({ userId: m.userId, percentage: Math.round(equalPercentage * 100) / 100 }))
+      );
+    }
+  }, [splitType, members, percentageSplits.length, setValue]);
 
   return (
     <div className={cn('space-y-6', className)}>
@@ -304,7 +334,7 @@ export function ExpenseForm({
                         : 'border-zinc-200 text-zinc-700 hover:border-zinc-300'
                     )}
                   >
-                    Split Equally
+                    Equal
                   </button>
                   <button
                     type="button"
@@ -316,7 +346,19 @@ export function ExpenseForm({
                         : 'border-zinc-200 text-zinc-700 hover:border-zinc-300'
                     )}
                   >
-                    Custom Amounts
+                    Custom
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setValue('splitType', 'PERCENTAGE')}
+                    className={cn(
+                      'flex-1 py-3 px-4 rounded-xl border text-sm font-medium transition-all',
+                      splitType === 'PERCENTAGE'
+                        ? 'border-zinc-900 bg-zinc-900 text-white'
+                        : 'border-zinc-200 text-zinc-700 hover:border-zinc-300'
+                    )}
+                  >
+                    Percentage
                   </button>
                 </div>
               </div>
@@ -450,6 +492,83 @@ export function ExpenseForm({
                 </div>
               )}
 
+              {/* Percentage Split: Percentage inputs */}
+              {splitType === 'PERCENTAGE' && (
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="block text-sm font-medium text-brown">
+                      Percentage allocation
+                    </label>
+                    {Math.abs(percentageSplitDifference) > 0.01 && (
+                      <span className="flex items-center gap-1 text-xs text-amber-600">
+                        <AlertCircle className="w-3 h-3" />
+                        {percentageSplitDifference > 0
+                          ? `${percentageSplitDifference.toFixed(1)}% remaining`
+                          : `${Math.abs(percentageSplitDifference).toFixed(1)}% over`}
+                      </span>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    {members.map((member) => {
+                      const userName = member.user?.name || 'Unknown';
+                      const isCurrentUser = member.userId === currentUserId;
+                      const currentSplit = percentageSplits.find(
+                        (s) => s.userId === member.userId
+                      );
+                      const calculatedAmount = currentSplit
+                        ? (amount * currentSplit.percentage) / 100
+                        : 0;
+
+                      return (
+                        <div
+                          key={member.userId}
+                          className="flex items-center justify-between p-3 rounded-xl border border-zinc-200"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full bg-zinc-100 flex items-center justify-center text-sm font-medium text-zinc-600">
+                              {userName.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <span className="font-medium text-zinc-900">
+                                {userName}
+                                {isCurrentUser && (
+                                  <span className="ml-1 text-xs text-zinc-500">(you)</span>
+                                )}
+                              </span>
+                              <p className="text-xs text-zinc-500">
+                                ${calculatedAmount.toFixed(2)}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="relative w-24">
+                            <input
+                              type="number"
+                              step="0.1"
+                              min="0"
+                              max="100"
+                              value={currentSplit?.percentage || 0}
+                              onChange={(e) =>
+                                updatePercentageSplit(
+                                  member.userId,
+                                  parseFloat(e.target.value) || 0
+                                )
+                              }
+                              className="w-full h-10 rounded-lg border border-zinc-200 pl-3 pr-8 text-sm text-right focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                            />
+                            <Percent className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {errors.percentageSplits && (
+                    <p className="mt-1.5 text-sm text-red-600">
+                      {errors.percentageSplits.message}
+                    </p>
+                  )}
+                </div>
+              )}
+
               {/* Preview */}
               <div className="bg-zinc-50 rounded-xl p-4">
                 <p className="text-sm font-medium text-zinc-700 mb-2">Summary</p>
@@ -462,7 +581,11 @@ export function ExpenseForm({
                 <div className="flex items-center justify-between mt-1">
                   <span className="text-zinc-600">Split between</span>
                   <span className="font-medium text-zinc-900">
-                    {splitType === 'EQUAL' ? splitWith.length : customSplits.length}{' '}
+                    {splitType === 'EQUAL'
+                      ? splitWith.length
+                      : splitType === 'CUSTOM'
+                        ? customSplits.length
+                        : percentageSplits.length}{' '}
                     people
                   </span>
                 </div>
@@ -505,7 +628,11 @@ export function ExpenseForm({
 
               <div>
                 <p className="text-sm font-medium text-zinc-700 mb-2">
-                  {splitType === 'EQUAL' ? 'Equal split' : 'Custom split'}
+                  {splitType === 'EQUAL'
+                    ? 'Equal split'
+                    : splitType === 'CUSTOM'
+                      ? 'Custom split'
+                      : 'Percentage split'}
                 </p>
                 <div className="space-y-1">
                   {splitType === 'EQUAL' &&
@@ -538,6 +665,27 @@ export function ExpenseForm({
                           </span>
                           <span className="text-sm font-medium text-zinc-900">
                             ${split.amount.toFixed(2)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  {splitType === 'PERCENTAGE' &&
+                    percentageSplits.map((split) => {
+                      const member = members.find((m) => m.userId === split.userId);
+                      const calculatedAmount = (amount * split.percentage) / 100;
+                      return (
+                        <div
+                          key={split.userId}
+                          className="flex items-center justify-between py-2 px-3 bg-zinc-50 rounded-lg"
+                        >
+                          <span className="text-sm text-zinc-700">
+                            {member?.user?.name || 'Unknown'}
+                            <span className="ml-1 text-zinc-500">
+                              ({split.percentage}%)
+                            </span>
+                          </span>
+                          <span className="text-sm font-medium text-zinc-900">
+                            ${calculatedAmount.toFixed(2)}
                           </span>
                         </div>
                       );

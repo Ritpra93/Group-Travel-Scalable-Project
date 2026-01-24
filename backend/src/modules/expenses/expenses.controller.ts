@@ -13,6 +13,7 @@ import type {
   PaginatedExpensesResponse,
   ExpenseSplitData,
   UserBalanceResponse,
+  SettlementResponse,
 } from './expenses.types';
 
 /**
@@ -191,6 +192,30 @@ export class ExpensesController {
       const userId = req.user!.id;
 
       const result = await expensesService.getTripBalances(tripId, userId);
+
+      res.status(200).json({
+        success: true,
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Get optimal settlements to clear all debts
+   * GET /api/v1/trips/:tripId/expenses/settlements
+   */
+  async getSettlements(
+    req: Request,
+    res: Response<ApiResponse<SettlementResponse>>,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const tripId = req.params.tripId;
+      const userId = req.user!.id;
+
+      const result = await expensesService.getSettlements(tripId, userId);
 
       res.status(200).json({
         success: true,

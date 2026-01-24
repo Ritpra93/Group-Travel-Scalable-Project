@@ -29,6 +29,14 @@ export const ExpenseSplitInputSchema = z.object({
 });
 
 /**
+ * Schema for percentage split input (used when splitType is PERCENTAGE)
+ */
+export const PercentageSplitInputSchema = z.object({
+  userId: z.string().min(20, 'Invalid user ID format'),
+  percentage: z.number().positive('Percentage must be positive').max(100, 'Percentage cannot exceed 100'),
+});
+
+/**
  * Schema for creating a new expense
  */
 export const CreateExpenseSchema = z
@@ -46,6 +54,7 @@ export const CreateExpenseSchema = z
     splitType: SplitTypeEnum.default('EQUAL'),
     splitWith: z.array(z.string().min(20, 'Invalid user ID format')).min(1, 'At least one user required for split').optional(),
     customSplits: z.array(ExpenseSplitInputSchema).optional(),
+    percentageSplits: z.array(PercentageSplitInputSchema).optional(),
   })
   .refine(
     (data) => {
@@ -57,10 +66,14 @@ export const CreateExpenseSchema = z
       if (data.splitType === 'EQUAL' && !data.splitWith) {
         return false;
       }
+      // If PERCENTAGE, must provide percentageSplits
+      if (data.splitType === 'PERCENTAGE' && !data.percentageSplits) {
+        return false;
+      }
       return true;
     },
     {
-      message: 'customSplits required when splitType is CUSTOM, splitWith required when splitType is EQUAL',
+      message: 'customSplits required for CUSTOM, splitWith required for EQUAL, percentageSplits required for PERCENTAGE',
       path: ['splitType'],
     }
   )
@@ -76,6 +89,20 @@ export const CreateExpenseSchema = z
     {
       message: 'Sum of custom splits must equal total amount',
       path: ['customSplits'],
+    }
+  )
+  .refine(
+    (data) => {
+      // If PERCENTAGE, sum of percentages must equal 100 (within 0.01 tolerance for rounding)
+      if (data.splitType === 'PERCENTAGE' && data.percentageSplits) {
+        const totalPercentage = data.percentageSplits.reduce((sum, s) => sum + s.percentage, 0);
+        return Math.abs(totalPercentage - 100) < 0.01;
+      }
+      return true;
+    },
+    {
+      message: 'Sum of percentages must equal 100',
+      path: ['percentageSplits'],
     }
   );
 
@@ -123,6 +150,7 @@ export const ListExpensesQuerySchema = PaginationSchema.extend({
 // ============================================================================
 
 export type ExpenseSplitInput = z.infer<typeof ExpenseSplitInputSchema>;
+export type PercentageSplitInput = z.infer<typeof PercentageSplitInputSchema>;
 export type CreateExpenseInput = z.infer<typeof CreateExpenseSchema>;
 export type UpdateExpenseInput = z.infer<typeof UpdateExpenseSchema>;
 export type UpdateSplitInput = z.infer<typeof UpdateSplitSchema>;
@@ -208,5 +236,31 @@ export interface PaginatedExpensesResponse {
     total: number;
     totalPages: number;
     hasMore: boolean;
+  };
+}
+
+/**
+ * Settlement transaction - who pays whom to settle debts
+ */
+export interface SettlementTransaction {
+  from: {
+    userId: string;
+    userName: string;
+  };
+  to: {
+    userId: string;
+    userName: string;
+  };
+  amount: string; // Decimal as string
+}
+
+/**
+ * Settlement response - optimal transactions to settle all debts
+ */
+export interface SettlementResponse {
+  settlements: SettlementTransaction[];
+  summary: {
+    totalTransactions: number;
+    totalAmount: string; // Sum of all settlement amounts
   };
 }

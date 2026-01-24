@@ -18,6 +18,7 @@ import { useTrip } from '@/lib/api/hooks/use-trips';
 import {
   useTripExpenses,
   useTripBalances,
+  useTripSettlements,
   useDeleteExpense,
   useUpdateSplitStatus,
 } from '@/lib/api/hooks/use-expenses';
@@ -27,6 +28,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ExpenseList } from '@/components/patterns/expense-list-item';
 import { BalanceSummary } from '@/components/patterns/expense-balance-card';
+import { SettlementCard } from '@/components/patterns/settlement-card';
 import {
   ExpenseCategoryIcon,
   getCategoryLabel,
@@ -75,6 +77,13 @@ export default function TripExpensesPage({
 
   // Fetch balances
   const { data: balances, isLoading: balancesLoading } = useTripBalances(tripId);
+
+  // Fetch settlements
+  const {
+    data: settlements,
+    isLoading: settlementsLoading,
+    refetch: refetchSettlements,
+  } = useTripSettlements(tripId);
 
   // Mutations
   const deleteExpense = useDeleteExpense(tripId);
@@ -172,36 +181,56 @@ export default function TripExpensesPage({
       </div>
 
       <div className="max-w-5xl mx-auto px-6 pt-8">
-        {/* Balances Section */}
+        {/* Balances & Settlements Section */}
         <section className="mb-10">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-[0.2em]">
-              Balances
-            </h2>
-            {!balancesLoading && balances && balances.length > 0 && (
-              <span className="text-sm text-zinc-500">
-                {balances.length} member{balances.length !== 1 && 's'}
-              </span>
-            )}
-          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Balances */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-[0.2em]">
+                  Balances
+                </h2>
+                {!balancesLoading && balances && balances.length > 0 && (
+                  <span className="text-sm text-zinc-500">
+                    {balances.length} member{balances.length !== 1 && 's'}
+                  </span>
+                )}
+              </div>
 
-          {balancesLoading ? (
-            <div className="text-center py-8 text-zinc-400">
-              Loading balances...
+              {balancesLoading ? (
+                <div className="text-center py-8 text-zinc-400">
+                  Loading balances...
+                </div>
+              ) : balances && balances.length > 0 ? (
+                <BalanceSummary
+                  balances={balances}
+                  currentUserId={user?.id}
+                  currency={trip.currency || 'USD'}
+                />
+              ) : (
+                <Card>
+                  <CardContent className="py-8 text-center text-zinc-500">
+                    No expenses yet. Add an expense to see balances.
+                  </CardContent>
+                </Card>
+              )}
             </div>
-          ) : balances && balances.length > 0 ? (
-            <BalanceSummary
-              balances={balances}
-              currentUserId={user?.id}
-              currency={trip.currency || 'USD'}
-            />
-          ) : (
-            <Card>
-              <CardContent className="py-8 text-center text-zinc-500">
-                No expenses yet. Add an expense to see balances.
-              </CardContent>
-            </Card>
-          )}
+
+            {/* Settlements */}
+            <div>
+              <div className="mb-4">
+                <h2 className="text-xs font-bold text-zinc-400 uppercase tracking-[0.2em]">
+                  Settle Up
+                </h2>
+              </div>
+              <SettlementCard
+                settlements={settlements}
+                isLoading={settlementsLoading}
+                onRefresh={() => refetchSettlements()}
+                currentUserId={user?.id}
+              />
+            </div>
+          </div>
         </section>
 
         {/* Expenses Section */}

@@ -71,3 +71,9 @@ tripExpensesRouter.get('/', asyncHandler(expensesController.listExpenses));
  * GET /api/v1/trips/:tripId/expenses/balances
  */
 tripExpensesRouter.get('/balances', asyncHandler(expensesController.getTripBalances));
+
+/**
+ * Get optimal settlements to clear all debts
+ * GET /api/v1/trips/:tripId/expenses/settlements
+ */
+tripExpensesRouter.get('/settlements', asyncHandler(expensesController.getSettlements));

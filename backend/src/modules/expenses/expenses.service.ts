@@ -56,6 +56,11 @@ export class ExpensesService {
         userId: s.userId,
         amount: s.amount,
       }));
+    } else if (data.splitType === 'PERCENTAGE') {
+      if (!data.percentageSplits || data.percentageSplits.length === 0) {
+        throw new ValidationError('percentageSplits is required for PERCENTAGE split type');
+      }
+      splitsToCreate = this.calculatePercentageSplits(data.amount, data.percentageSplits);
     }
 
     // 3. Verify all split users are members of the trip's group
@@ -555,6 +560,84 @@ export class ExpensesService {
   }
 
   /**
+   * Calculate optimal settlements to clear all debts with minimum transactions
+   * Uses a greedy algorithm matching largest debtor with largest creditor
+   */
+  async getSettlements(tripId: string, userId: string): Promise<import('./expenses.types').SettlementResponse> {
+    // Get all balances first
+    const balances = await this.getTripBalances(tripId, userId);
+
+    // Separate into creditors (positive balance = others owe them) and debtors (negative balance = they owe others)
+    const creditors = balances
+      .filter((b) => parseFloat(b.balance) > 0.01)
+      .map((b) => ({
+        userId: b.userId,
+        userName: b.userName,
+        amount: parseFloat(b.balance),
+      }))
+      .sort((a, b) => b.amount - a.amount); // Sort descending by amount
+
+    const debtors = balances
+      .filter((b) => parseFloat(b.balance) < -0.01)
+      .map((b) => ({
+        userId: b.userId,
+        userName: b.userName,
+        amount: Math.abs(parseFloat(b.balance)),
+      }))
+      .sort((a, b) => b.amount - a.amount); // Sort descending by amount
+
+    const settlements: import('./expenses.types').SettlementTransaction[] = [];
+
+    // Greedy matching: pair largest debtor with largest creditor
+    while (creditors.length > 0 && debtors.length > 0) {
+      const creditor = creditors[0];
+      const debtor = debtors[0];
+
+      // Settlement amount is the minimum of what debtor owes and what creditor is owed
+      const settlementAmount = Math.min(creditor.amount, debtor.amount);
+
+      if (settlementAmount > 0.01) {
+        settlements.push({
+          from: {
+            userId: debtor.userId,
+            userName: debtor.userName,
+          },
+          to: {
+            userId: creditor.userId,
+            userName: creditor.userName,
+          },
+          amount: settlementAmount.toFixed(2),
+        });
+      }
+
+      // Update remaining amounts
+      creditor.amount -= settlementAmount;
+      debtor.amount -= settlementAmount;
+
+      // Remove settled parties
+      if (creditor.amount < 0.01) {
+        creditors.shift();
+      }
+      if (debtor.amount < 0.01) {
+        debtors.shift();
+      }
+    }
+
+    // Calculate summary
+    const totalAmount = settlements
+      .reduce((sum, s) => sum + parseFloat(s.amount), 0)
+      .toFixed(2);
+
+    return {
+      settlements,
+      summary: {
+        totalTransactions: settlements.length,
+        totalAmount,
+      },
+    };
+  }
+
+  /**
    * Helper: Verify user is member of group
    * @private
    */
@@ -592,6 +675,43 @@ export class ExpensesService {
       userId,
       // Last user gets the remainder to ensure sum equals total
       amount: index === numUsers - 1 ? baseAmount + remainder : baseAmount,
+    }));
+  }
+
+  /**
+   * Helper: Calculate percentage-based splits
+   * Converts percentage allocations to actual amounts, handling rounding
+   * @private
+   */
+  private calculatePercentageSplits(
+    totalAmount: number,
+    splits: { userId: string; percentage: number }[]
+  ): { userId: string; amount: number }[] {
+    // Calculate raw amounts based on percentages
+    const rawSplits = splits.map((s) => ({
+      userId: s.userId,
+      percentage: s.percentage,
+      rawAmount: (totalAmount * s.percentage) / 100,
+      amount: Math.floor((totalAmount * s.percentage) / 100 * 100) / 100, // Round down to 2 decimals
+    }));
+
+    // Calculate the sum of rounded amounts
+    const roundedSum = rawSplits.reduce((sum, s) => sum + s.amount, 0);
+    const remainder = Math.round((totalAmount - roundedSum) * 100) / 100;
+
+    // If there's a remainder due to rounding, add it to the largest split
+    if (Math.abs(remainder) > 0.001) {
+      // Find split with largest percentage to absorb remainder
+      const largestIndex = rawSplits.reduce(
+        (maxIdx, s, idx, arr) => (s.percentage > arr[maxIdx].percentage ? idx : maxIdx),
+        0
+      );
+      rawSplits[largestIndex].amount = Math.round((rawSplits[largestIndex].amount + remainder) * 100) / 100;
+    }
+
+    return rawSplits.map((s) => ({
+      userId: s.userId,
+      amount: s.amount,
     }));
   }
 

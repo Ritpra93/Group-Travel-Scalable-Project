@@ -18,7 +18,7 @@ export const EXPENSE_CATEGORIES = [
   'OTHER',
 ] as const;
 
-export const SPLIT_TYPES = ['EQUAL', 'CUSTOM'] as const;
+export const SPLIT_TYPES = ['EQUAL', 'CUSTOM', 'PERCENTAGE'] as const;
 
 export const CATEGORY_LABELS: Record<(typeof EXPENSE_CATEGORIES)[number], string> = {
   ACCOMMODATION: 'Accommodation',
@@ -42,6 +42,17 @@ export const customSplitSchema = z.object({
     .number()
     .positive('Amount must be positive')
     .multipleOf(0.01, 'Amount can have at most 2 decimal places'),
+});
+
+/**
+ * Percentage split input schema
+ */
+export const percentageSplitSchema = z.object({
+  userId: z.string().min(1, 'User is required'),
+  percentage: z
+    .number()
+    .positive('Percentage must be positive')
+    .max(100, 'Percentage cannot exceed 100'),
 });
 
 /**
@@ -77,6 +88,7 @@ export const createExpenseSchema = z
       .min(1, 'At least one user required')
       .optional(),
     customSplits: z.array(customSplitSchema).optional(),
+    percentageSplits: z.array(percentageSplitSchema).optional(),
   })
   .refine(
     (data) => {
@@ -113,6 +125,31 @@ export const createExpenseSchema = z
     {
       message: 'Split amounts must equal the total expense amount',
       path: ['customSplits'],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.splitType === 'PERCENTAGE') {
+        return data.percentageSplits && data.percentageSplits.length > 0;
+      }
+      return true;
+    },
+    {
+      message: 'Add at least one percentage split',
+      path: ['percentageSplits'],
+    }
+  )
+  .refine(
+    (data) => {
+      if (data.splitType === 'PERCENTAGE' && data.percentageSplits) {
+        const total = data.percentageSplits.reduce((sum, s) => sum + s.percentage, 0);
+        return Math.abs(total - 100) < 0.01;
+      }
+      return true;
+    },
+    {
+      message: 'Percentages must add up to 100%',
+      path: ['percentageSplits'],
     }
   );
 
@@ -156,3 +193,4 @@ export type CreateExpenseFormData = z.infer<typeof createExpenseSchema>;
 export type UpdateExpenseFormData = z.infer<typeof updateExpenseSchema>;
 export type UpdateSplitStatusFormData = z.infer<typeof updateSplitStatusSchema>;
 export type CustomSplitInput = z.infer<typeof customSplitSchema>;
+export type PercentageSplitInput = z.infer<typeof percentageSplitSchema>;
