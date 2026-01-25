@@ -87,7 +87,7 @@ export default function TripExpensesPage({
 
   // Mutations
   const deleteExpense = useDeleteExpense(tripId);
-  const updateSplitStatus = useUpdateSplitStatus('', tripId);
+  const updateSplitStatus = useUpdateSplitStatus(tripId);
 
   // Loading state
   if (tripLoading || expensesLoading) {
@@ -132,9 +132,7 @@ export default function TripExpensesPage({
     split: ExpenseSplit,
     isPaid: boolean
   ) => {
-    // Create a new mutation instance with the correct expenseId
-    const mutation = useUpdateSplitStatus(expense.id, tripId);
-    mutation.mutate({ splitId: split.id, isPaid });
+    updateSplitStatus.mutate({ expenseId: expense.id, splitId: split.id, isPaid });
   };
 
   const handleCategoryFilter = (category?: ExpenseCategory) => {
@@ -325,6 +323,7 @@ export default function TripExpensesPage({
                 currentUserId={user?.id}
                 onEdit={handleEditExpense}
                 onDelete={handleDeleteExpense}
+                onToggleSplitPaid={handleToggleSplitPaid}
               />
 
               {/* Pagination */}

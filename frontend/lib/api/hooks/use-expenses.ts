@@ -143,20 +143,23 @@ export function useDeleteExpense(tripId: string) {
 
 /**
  * Update a split's payment status
+ * This version takes expenseId as part of the mutation variables
  */
-export function useUpdateSplitStatus(expenseId: string, tripId: string) {
+export function useUpdateSplitStatus(tripId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ splitId, isPaid }: { splitId: string; isPaid: boolean }) =>
+    mutationFn: ({ expenseId, splitId, isPaid }: { expenseId: string; splitId: string; isPaid: boolean }) =>
       expensesService.updateSplitStatus(expenseId, splitId, isPaid),
-    onSuccess: () => {
+    onSuccess: (_, { expenseId }) => {
       // Invalidate expense detail to refresh splits
       queryClient.invalidateQueries({ queryKey: expensesKeys.detail(expenseId) });
       // Invalidate expenses list
       queryClient.invalidateQueries({ queryKey: expensesKeys.lists() });
       // Invalidate balances since payment status affects calculations
       queryClient.invalidateQueries({ queryKey: expensesKeys.balances(tripId) });
+      // Invalidate settlements since payment status affects them
+      queryClient.invalidateQueries({ queryKey: expensesKeys.settlements(tripId) });
     },
   });
 }

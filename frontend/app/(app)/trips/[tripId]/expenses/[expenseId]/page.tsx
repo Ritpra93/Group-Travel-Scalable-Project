@@ -81,7 +81,7 @@ export default function ExpenseDetailPage({
 
   // Mutations
   const deleteExpense = useDeleteExpense(tripId);
-  const updateSplitStatus = useUpdateSplitStatus(expenseId, tripId);
+  const updateSplitStatus = useUpdateSplitStatus(tripId);
 
   // Loading state
   if (tripLoading || expenseLoading) {
@@ -122,7 +122,7 @@ export default function ExpenseDetailPage({
 
   // Handle split toggle
   const handleToggleSplit = (split: ExpenseSplit) => {
-    updateSplitStatus.mutate({ splitId: split.id, isPaid: !split.isPaid });
+    updateSplitStatus.mutate({ expenseId, splitId: split.id, isPaid: !split.isPaid });
   };
 
   return (
