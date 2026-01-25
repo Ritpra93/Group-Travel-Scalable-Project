@@ -4,6 +4,7 @@ import { env } from './config/env';
 import { logger } from './common/utils/logger';
 import { disconnectDatabase } from './config/database';
 import { disconnectRedis, createRedisClient } from './config/redis';
+import { initializeSocketIO, closeSocketIO } from './websocket';
 
 /**
  * Server instance
@@ -24,6 +25,10 @@ async function startServer(): Promise<void> {
 
     // Create HTTP server
     server = http.createServer(app);
+
+    // Initialize Socket.IO
+    logger.info('Initializing Socket.IO...');
+    await initializeSocketIO(server);
 
     // Start listening
     server.listen(env.PORT, () => {
@@ -73,6 +78,10 @@ async function gracefulShutdown(signal: string): Promise<void> {
       logger.info('HTTP server closed');
 
       try {
+        // Close Socket.IO connections
+        closeSocketIO();
+        logger.info('Socket.IO connections closed');
+
         // Close database connections
         await disconnectDatabase();
         logger.info('Database connections closed');

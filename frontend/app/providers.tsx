@@ -9,6 +9,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState, type ReactNode } from 'react';
 import { AuthGuard } from '@/components/providers/auth-guard';
+import { SocketConnectionManager } from '@/components/providers/socket-connection-manager';
 
 // ============================================================================
 // Providers Component
@@ -42,6 +43,7 @@ export function Providers({ children }: { children: ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <SocketConnectionManager />
       <AuthGuard>
         {children}
       </AuthGuard>

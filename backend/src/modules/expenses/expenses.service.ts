@@ -2,6 +2,7 @@ import { createId } from '@paralleldrive/cuid2';
 import { db } from '../../config/kysely';
 import { NotFoundError, ForbiddenError, ValidationError } from '../../common/utils/errors';
 import { canCreateExpense, canDeleteExpense, canModifyExpense } from './expenses.middleware';
+import { emitExpenseCreated, emitExpenseUpdated, emitExpenseDeleted, emitSplitUpdated } from '../../websocket/emitters';
 import type {
   CreateExpenseInput,
   UpdateExpenseInput,
@@ -143,7 +144,10 @@ export class ExpensesService {
       return newExpense;
     });
 
-    // 5. Fetch and return complete expense with splits
+    // 5. Emit real-time event
+    emitExpenseCreated(data.tripId, result.id, data.title, data.amount, userId);
+
+    // 6. Fetch and return complete expense with splits
     return this.getExpenseWithDetails(result.id, userId);
   }
 
@@ -369,6 +373,9 @@ export class ExpensesService {
       .where('id', '=', expenseId)
       .execute();
 
+    // Emit real-time event
+    emitExpenseUpdated(expense.tripId, expenseId, userId);
+
     // Return updated expense
     return this.getExpenseWithDetails(expenseId, userId);
   }
@@ -399,6 +406,9 @@ export class ExpensesService {
 
     // Delete expense (cascades to splits)
     await db.deleteFrom('expenses').where('id', '=', expenseId).execute();
+
+    // Emit real-time event
+    emitExpenseDeleted(expense.tripId, expenseId, userId);
   }
 
   /**
@@ -414,7 +424,7 @@ export class ExpensesService {
     const expense = await db
       .selectFrom('expenses as e')
       .innerJoin('trips as t', 't.id', 'e.tripId')
-      .select(['e.id', 'e.paidBy', 't.groupId'])
+      .select(['e.id', 'e.tripId', 'e.paidBy', 't.groupId'])
       .where('e.id', '=', expenseId)
       .executeTakeFirst();
 
@@ -455,6 +465,9 @@ export class ExpensesService {
     }
 
     await db.updateTable('expense_splits').set(updateData).where('id', '=', splitId).execute();
+
+    // Emit real-time event
+    emitSplitUpdated(expense.tripId, expenseId, splitId, data.isPaid, userId);
 
     // Return updated split with user details
     const updatedSplit = await db

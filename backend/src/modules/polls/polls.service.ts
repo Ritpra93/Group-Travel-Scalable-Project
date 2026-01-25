@@ -2,6 +2,7 @@ import { createId } from '@paralleldrive/cuid2';
 import { db } from '../../config/kysely';
 import { NotFoundError, ForbiddenError, ValidationError } from '../../common/utils/errors';
 import { canCreatePoll, canDeletePoll, canVoteOnPoll, isValidStatusTransition } from './polls.middleware';
+import { emitPollCreated, emitPollClosed, emitPollDeleted, emitPollVoted } from '../../websocket/emitters';
 import type {
   CreatePollInput,
   UpdatePollInput,
@@ -105,6 +106,9 @@ export class PollsService {
 
     // Get options with vote counts (will be 0 for new poll)
     const options = await this.getOptionsWithVotes(result.id);
+
+    // Emit real-time event
+    emitPollCreated(data.tripId, result.id, result.title, userId);
 
     return {
       ...result,
@@ -353,7 +357,7 @@ export class PollsService {
     const poll = await db
       .selectFrom('polls as p')
       .innerJoin('trips as t', 't.id', 'p.tripId')
-      .select(['p.id', 'p.status', 't.groupId'])
+      .select(['p.id', 'p.tripId', 'p.status', 't.groupId'])
       .where('p.id', '=', pollId)
       .executeTakeFirst();
 
@@ -379,7 +383,10 @@ export class PollsService {
       .where('id', '=', pollId)
       .execute();
 
-    // 5. Return updated poll
+    // 5. Emit real-time event
+    emitPollClosed(poll.tripId, pollId, userId);
+
+    // 6. Return updated poll
     return this.getPoll(pollId, userId);
   }
 
@@ -391,7 +398,7 @@ export class PollsService {
     const poll = await db
       .selectFrom('polls as p')
       .innerJoin('trips as t', 't.id', 'p.tripId')
-      .select(['p.id', 't.groupId'])
+      .select(['p.id', 'p.tripId', 't.groupId'])
       .where('p.id', '=', pollId)
       .executeTakeFirst();
 
@@ -408,6 +415,9 @@ export class PollsService {
 
     // 3. Delete poll (cascades to options and votes)
     await db.deleteFrom('polls').where('id', '=', pollId).execute();
+
+    // 4. Emit real-time event
+    emitPollDeleted(poll.tripId, pollId, userId);
   }
 
   /**
@@ -529,6 +539,9 @@ export class PollsService {
       return newVote;
     });
 
+    // 9. Emit real-time event
+    emitPollVoted(poll.tripId, pollId, optionId, 'cast', userId);
+
     return vote;
   }
 
@@ -625,6 +638,9 @@ export class PollsService {
       return vote;
     });
 
+    // 7. Emit real-time event
+    emitPollVoted(poll.tripId, pollId, newOptionId, 'change', userId);
+
     return newVote;
   }
 
@@ -636,7 +652,7 @@ export class PollsService {
     const poll = await db
       .selectFrom('polls as p')
       .innerJoin('trips as t', 't.id', 'p.tripId')
-      .select(['p.id', 'p.status', 't.groupId'])
+      .select(['p.id', 'p.tripId', 'p.status', 't.groupId'])
       .where('p.id', '=', pollId)
       .executeTakeFirst();
 
@@ -670,6 +686,9 @@ export class PollsService {
       .deleteFrom('votes')
       .where('id', '=', vote.id)
       .execute();
+
+    // 6. Emit real-time event
+    emitPollVoted(poll.tripId, pollId, optionId, 'remove', userId);
   }
 
   /**
