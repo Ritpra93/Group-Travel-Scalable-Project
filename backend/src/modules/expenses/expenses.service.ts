@@ -240,7 +240,7 @@ export class ExpensesService {
         'payer.name as payerName',
         'payer.email as payerEmail',
       ])
-      .orderBy(`e.${sortBy}`, sortOrder)
+      .orderBy(`e.${sortBy}` as any, sortOrder)
       .limit(limit)
       .offset(offset)
       .execute();
@@ -721,7 +721,7 @@ export class ExpensesService {
    */
   private async getExpenseWithDetails(
     expenseId: string,
-    userId: string
+    _userId: string
   ): Promise<ExpenseResponse> {
     // Get expense with payer and trip info
     const expense = await db

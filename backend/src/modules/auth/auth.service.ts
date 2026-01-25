@@ -3,7 +3,7 @@ import { hashPassword, comparePassword, validatePasswordStrength } from '../../c
 import { generateTokenPair, verifyRefreshToken } from '../../common/utils/jwt';
 import { ConflictError, UnauthorizedError, ValidationError } from '../../common/utils/errors';
 import { logAuth, logEvent } from '../../common/utils/logger';
-import { cacheSet, cacheDel } from '../../config/redis';
+import { cacheSet } from '../../config/redis';
 import type { RegisterInput, LoginInput, RefreshTokenInput, AuthResponse } from './auth.types';
 import { createId } from '@paralleldrive/cuid2';
 
