@@ -239,3 +239,49 @@ export interface GetInvitationsParams {
   limit?: number;
   status?: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'EXPIRED';
 }
+
+// ============================================================================
+// Paginated Response
+// ============================================================================
+
+export interface PaginatedResponse<T> {
+  success: boolean;
+  data: T[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasMore: boolean;
+  };
+}
+
+// ============================================================================
+// Re-exports for convenience (DTOs)
+// ============================================================================
+
+// Groups
+export type CreateGroupDTO = CreateGroupRequest;
+export type UpdateGroupDTO = UpdateGroupRequest;
+export type AddMemberDTO = { email: string };
+export type UpdateMemberRoleDTO = UpdateMemberRoleRequest;
+
+// Trips
+export type CreateTripDTO = CreateTripRequest;
+export type UpdateTripDTO = UpdateTripRequest;
+
+// Polls
+export type CreatePollDTO = CreatePollRequest;
+export type UpdatePollDTO = UpdatePollRequest;
+export type VoteDTO = VoteRequest;
+
+// Itinerary
+export type CreateItineraryItemDTO = CreateItineraryItemRequest;
+export type UpdateItineraryItemDTO = UpdateItineraryItemRequest;
+
+// Expenses
+export type CreateExpenseDTO = CreateExpenseRequest;
+export type UpdateExpenseDTO = UpdateExpenseRequest;
+
+// Re-export model types
+export type { Group, GroupMember, Trip, Poll, PollOption, Vote, Expense, ExpenseSplit, ItineraryItem } from './models.types';

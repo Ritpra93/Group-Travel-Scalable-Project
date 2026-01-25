@@ -18,12 +18,14 @@ interface AuthState {
   accessToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  _hasHydrated: boolean;
 
   // Actions
   setUser: (user: User | null) => void;
   setTokens: (accessToken: string) => void;
   clearAuth: () => void;
   setLoading: (loading: boolean) => void;
+  setHasHydrated: (state: boolean) => void;
 }
 
 // ============================================================================
@@ -38,6 +40,7 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       isAuthenticated: false,
       isLoading: true,
+      _hasHydrated: false,
 
       // Set user
       setUser: (user) =>
@@ -66,6 +69,9 @@ export const useAuthStore = create<AuthState>()(
 
       // Set loading state
       setLoading: (loading) => set({ isLoading: loading }),
+
+      // Set hydration state (called after rehydration completes)
+      setHasHydrated: (state) => set({ _hasHydrated: state, isLoading: false }),
     }),
     {
       name: 'wanderlust-auth', // localStorage key
@@ -81,9 +87,9 @@ export const useAuthStore = create<AuthState>()(
         if (state?.accessToken) {
           setAccessToken(state.accessToken);
         }
-        // Set loading to false after rehydration
+        // Mark hydration complete and set loading to false
         if (state) {
-          state.isLoading = false;
+          state.setHasHydrated(true);
         }
       },
     }
@@ -97,3 +103,4 @@ export const useAuthStore = create<AuthState>()(
 export const selectUser = (state: AuthState) => state.user;
 export const selectIsAuthenticated = (state: AuthState) => state.isAuthenticated;
 export const selectIsLoading = (state: AuthState) => state.isLoading;
+export const selectHasHydrated = (state: AuthState) => state._hasHydrated;
