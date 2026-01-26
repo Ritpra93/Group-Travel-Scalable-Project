@@ -35,7 +35,9 @@ import type {
  * Call this once at the app level (e.g., in providers.tsx)
  */
 export function useSocketConnection() {
-  const { accessToken, user } = useAuthStore();
+  // Use selectors to prevent re-renders on unrelated state changes
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const user = useAuthStore((state) => state.user);
   const isConnectedRef = useRef(false);
 
   useEffect(() => {
@@ -69,7 +71,8 @@ export function useSocketConnection() {
  */
 export function useTripSocket(tripId: string | undefined) {
   const queryClient = useQueryClient();
-  const { user } = useAuthStore();
+  // Use selector to prevent re-renders on unrelated state changes
+  const user = useAuthStore((state) => state.user);
   const joinedRef = useRef<string | null>(null);
 
   useEffect(() => {

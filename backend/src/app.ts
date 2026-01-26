@@ -2,6 +2,7 @@ import express, { Application } from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
+import cookieParser from 'cookie-parser';
 import { env } from './config/env';
 import { requestId, requestLogger } from './middleware/requestLogger.middleware';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.middleware';
@@ -76,6 +77,9 @@ export function createApp(): Application {
   // Body parsers
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+  // Cookie parser - for reading httpOnly cookies (refresh tokens)
+  app.use(cookieParser());
 
   // Request ID generation
   app.use(requestId);
