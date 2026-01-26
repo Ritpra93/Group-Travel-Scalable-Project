@@ -33,8 +33,9 @@ export default function DashboardPage() {
   const { data: groupsData } = useGroups({ limit: 100 });
   const { data: tripsData, isLoading: isLoadingTrips } = useTrips({ limit: 100 });
 
-  const trips = (tripsData?.data || []) as Trip[];
-  const groups = groupsData?.data || [];
+  // Memoize trips and groups to prevent unnecessary re-renders
+  const trips = useMemo(() => (tripsData?.data || []) as Trip[], [tripsData?.data]);
+  const groups = useMemo(() => groupsData?.data || [], [groupsData?.data]);
 
   // Select featured trip: prefer IN_PROGRESS > CONFIRMED > PLANNING
   const featuredTrip = useMemo(() => {
@@ -54,9 +55,12 @@ export default function DashboardPage() {
     return sorted.find(t => t.status !== 'CANCELLED') || null;
   }, [trips]);
 
-  // Fetch group members for featured trip
-  // useGroupMembers returns GroupMember[] directly, not a paginated response
-  const { data: members = [] } = useGroupMembers(featuredTrip?.groupId || '');
+  // Get the groupId for members query - must be stable to avoid re-fetching
+  const featuredTripGroupId = featuredTrip?.groupId || '';
+
+  // Fetch group members for featured trip (only if we have a groupId)
+  const { data: membersData } = useGroupMembers(featuredTripGroupId);
+  const members = membersData || [];
 
   // Format featured trip for hero component
   const heroTrip = featuredTrip ? {
