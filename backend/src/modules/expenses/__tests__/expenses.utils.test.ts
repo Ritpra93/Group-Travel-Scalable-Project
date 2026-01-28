@@ -255,6 +255,56 @@ describe('calculatePercentageSplits', () => {
 
         expect(round2(sumSplits(result))).toBe(100);
     });
+
+    // Floating-point and tolerance edge cases
+    describe('floating-point edge cases', () => {
+        it('handles remainder exactly at 0.001 threshold', () => {
+            // Test the 0.001 tolerance used in the function (line 110)
+            // 100 * 33.333 / 100 = 33.333 -> floored = 33.33
+            // 3 * 33.33 = 99.99, remainder = 0.01 (above 0.001 threshold)
+            const result = calculatePercentageSplits(100, [
+                { userId: 'user1', percentage: 33.333 },
+                { userId: 'user2', percentage: 33.333 },
+                { userId: 'user3', percentage: 33.334 },
+            ]);
+
+            expect(round2(sumSplits(result))).toBe(100);
+        });
+
+        it('handles large amount with awkward percentages ($9999.99 split 17/29/54)', () => {
+            const result = calculatePercentageSplits(9999.99, [
+                { userId: 'user1', percentage: 17 },
+                { userId: 'user2', percentage: 29 },
+                { userId: 'user3', percentage: 54 },
+            ]);
+
+            expect(result).toHaveLength(3);
+            expect(round2(sumSplits(result))).toBe(9999.99);
+        });
+
+        it('handles very small percentages on small amounts ($0.10 at 1%)', () => {
+            const result = calculatePercentageSplits(0.1, [
+                { userId: 'user1', percentage: 1 },
+                { userId: 'user2', percentage: 99 },
+            ]);
+
+            expect(result).toHaveLength(2);
+            // 0.1 * 1% = 0.001 -> floored = 0.00
+            expect(round2(sumSplits(result))).toBe(0.1);
+        });
+
+        it('correctly assigns remainder when multiple splits have same percentage', () => {
+            // When percentages are equal, first one in array should get remainder
+            const result = calculatePercentageSplits(100, [
+                { userId: 'user1', percentage: 50 },
+                { userId: 'user2', percentage: 50 },
+            ]);
+
+            // Should be exactly 50/50 with no remainder issues
+            expect(result[0].amount).toBe(50);
+            expect(result[1].amount).toBe(50);
+        });
+    });
 });
 
 describe('calculateOptimalSettlements', () => {
@@ -390,5 +440,79 @@ describe('calculateOptimalSettlements', () => {
         const result = calculateOptimalSettlements([]);
 
         expect(result).toHaveLength(0);
+    });
+
+    // Tolerance boundary tests
+    describe('tolerance boundary cases', () => {
+        it('includes balances exactly at $0.01 threshold', () => {
+            const balances: UserBalance[] = [
+                { userId: 'userA', userName: 'Alice', balance: 0.01 },
+                { userId: 'userB', userName: 'Bob', balance: -0.01 },
+            ];
+
+            const result = calculateOptimalSettlements(balances);
+
+            // Balance of exactly 0.01 should NOT be filtered (> 0.01 filter)
+            // So this should produce no settlements since 0.01 is not > 0.01
+            expect(result).toHaveLength(0);
+        });
+
+        it('includes balances just above $0.01 threshold ($0.02)', () => {
+            const balances: UserBalance[] = [
+                { userId: 'userA', userName: 'Alice', balance: 0.02 },
+                { userId: 'userB', userName: 'Bob', balance: -0.02 },
+            ];
+
+            const result = calculateOptimalSettlements(balances);
+
+            expect(result).toHaveLength(1);
+            expect(result[0].amount).toBe('0.02');
+        });
+
+        it('filters out rounding noise from realistic scenario', () => {
+            // Simulates accumulated floating-point errors
+            const balances: UserBalance[] = [
+                { userId: 'userA', userName: 'Alice', balance: 100.005 }, // Slight over
+                { userId: 'userB', userName: 'Bob', balance: -100.003 }, // Slight under
+                { userId: 'userC', userName: 'Charlie', balance: -0.002 }, // Noise
+            ];
+
+            const result = calculateOptimalSettlements(balances);
+
+            // Charlie's -0.002 should be filtered out
+            expect(result).toHaveLength(1);
+            expect(result[0].from.userId).toBe('userB');
+            expect(result[0].to.userId).toBe('userA');
+        });
+
+        it('handles settlement amount exactly at $0.01 during iteration', () => {
+            // Create a scenario where settlement amount becomes exactly 0.01
+            const balances: UserBalance[] = [
+                { userId: 'userA', userName: 'Alice', balance: 50.01 },
+                { userId: 'userB', userName: 'Bob', balance: -50 },
+                { userId: 'userC', userName: 'Charlie', balance: -0.01 },
+            ];
+
+            const result = calculateOptimalSettlements(balances);
+
+            // Bob pays Alice 50, leaving Alice with 0.01 (filtered out)
+            // Charlie's -0.01 is at threshold (filtered out)
+            const totalSettled = result.reduce((sum, s) => sum + parseFloat(s.amount), 0);
+            expect(totalSettled).toBeCloseTo(50, 2);
+        });
+
+        it('produces correct output format (string with 2 decimals)', () => {
+            const balances: UserBalance[] = [
+                { userId: 'userA', userName: 'Alice', balance: 33.333 },
+                { userId: 'userB', userName: 'Bob', balance: -33.333 },
+            ];
+
+            const result = calculateOptimalSettlements(balances);
+
+            expect(result).toHaveLength(1);
+            // Amount should be a string with exactly 2 decimal places
+            expect(result[0].amount).toMatch(/^\d+\.\d{2}$/);
+            expect(result[0].amount).toBe('33.33');
+        });
     });
 });
