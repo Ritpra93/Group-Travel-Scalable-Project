@@ -6,6 +6,8 @@ export interface ApiResponse<T = unknown> {
   data?: T;
   error?: ApiError;
   meta?: ApiMeta;
+  pagination?: ApiMeta;
+  message?: string;
 }
 
 /**
