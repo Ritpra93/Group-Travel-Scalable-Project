@@ -104,7 +104,7 @@ export function PollWidget({ question, options, timeRemaining, onVote }: PollWid
         size="sm"
         fullWidth
         className="mt-6 text-xs font-medium"
-        onClick={() => onVote?.(options[0]?.id)}
+        onClick={() => options[0]?.id && onVote?.(options[0].id)}
       >
         Cast Vote
       </Button>

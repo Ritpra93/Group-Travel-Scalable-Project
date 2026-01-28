@@ -230,13 +230,13 @@ export default function GroupDetailPage({
                   <div className="flex items-center gap-4">
                     <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center">
                       <span className="text-primary font-semibold text-lg">
-                        {member.user.name.charAt(0).toUpperCase()}
+                        {member.user?.name?.charAt(0).toUpperCase() || '?'}
                       </span>
                     </div>
                     <div>
-                      <p className="font-semibold text-stone-900 text-base">{member.user.name}</p>
+                      <p className="font-semibold text-stone-900 text-base">{member.user?.name || 'Unknown'}</p>
                       <p className="text-sm text-stone-500 font-light">
-                        {member.user.email}
+                        {member.user?.email || 'No email'}
                       </p>
                     </div>
                   </div>

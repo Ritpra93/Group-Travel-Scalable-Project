@@ -20,7 +20,22 @@ export interface SettlementCardProps {
   isLoading?: boolean;
   onRefresh?: () => void;
   currentUserId?: string;
+  currency?: string;
   className?: string;
+}
+
+// ============================================================================
+// Helpers
+// ============================================================================
+
+function formatCurrency(amount: string | number, currency: string = 'USD'): string {
+  const numAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(numAmount);
 }
 
 // ============================================================================
@@ -32,6 +47,7 @@ export function SettlementCard({
   isLoading = false,
   onRefresh,
   currentUserId,
+  currency = 'USD',
   className,
 }: SettlementCardProps) {
   if (isLoading) {
@@ -108,7 +124,7 @@ export function SettlementCard({
           <div className="flex items-center justify-between text-sm mt-1">
             <span className="text-zinc-600">Total amount</span>
             <span className="font-semibold text-zinc-900">
-              ${settlements.summary.totalAmount}
+              {formatCurrency(settlements.summary.totalAmount, currency)}
             </span>
           </div>
         </div>
@@ -167,7 +183,7 @@ export function SettlementCard({
                           : 'text-zinc-900'
                     )}
                   >
-                    ${settlement.amount}
+                    {formatCurrency(settlement.amount, currency)}
                   </span>
                   <ArrowRight className="w-4 h-4 text-zinc-400" />
                 </div>

@@ -146,10 +146,12 @@ export default function ExpenseDetailPage({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm" disabled>
-                <Pencil className="w-4 h-4 mr-1" />
-                Edit
-              </Button>
+              <Link href={`/trips/${tripId}/expenses/${expenseId}/edit`}>
+                <Button variant="outline" size="sm">
+                  <Pencil className="w-4 h-4 mr-1" />
+                  Edit
+                </Button>
+              </Link>
               <Button
                 variant="destructive"
                 size="sm"

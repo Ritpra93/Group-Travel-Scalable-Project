@@ -34,7 +34,7 @@ export const itineraryKeys = {
  */
 export function useItinerary(tripId: string, params?: ListItineraryParams) {
   return useQuery({
-    queryKey: itineraryKeys.list(tripId, params),
+    queryKey: itineraryKeys.list(tripId, params as Record<string, unknown>),
     queryFn: () => itineraryService.getItineraryItems(tripId, params),
     enabled: !!tripId,
   });

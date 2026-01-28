@@ -226,6 +226,7 @@ export default function TripExpensesPage({
                 isLoading={settlementsLoading}
                 onRefresh={() => refetchSettlements()}
                 currentUserId={user?.id}
+                currency={trip.currency || 'USD'}
               />
             </div>
           </div>

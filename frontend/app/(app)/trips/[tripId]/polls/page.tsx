@@ -135,20 +135,20 @@ export default function PollsPage({ params }: PollsPageProps) {
               : `No ${statusFilter.toLowerCase()} polls found`
           }
           action={
-            statusFilter === 'ALL' ? (
-              <Link href={`/trips/${tripId}/polls/new`}>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Create First Poll
-                </Button>
-              </Link>
-            ) : (
-              <Button variant="outline" onClick={() => setStatusFilter('ALL')}>
-                View All Polls
-              </Button>
-            )
+            statusFilter !== 'ALL'
+              ? { label: 'View All Polls', onClick: () => setStatusFilter('ALL') }
+              : undefined
           }
-        />
+        >
+          {statusFilter === 'ALL' && (
+            <Link href={`/trips/${tripId}/polls/new`}>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Create First Poll
+              </Button>
+            </Link>
+          )}
+        </EmptyState>
       ) : (
         <div className="space-y-4">
           {polls.map((poll) => (

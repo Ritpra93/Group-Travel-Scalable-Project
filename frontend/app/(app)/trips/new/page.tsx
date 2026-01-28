@@ -154,7 +154,7 @@ export default function CreateTripPage() {
       <form onSubmit={handleSubmit(onSubmit)}>
         <Card>
           <CardHeader>
-            <CardTitle>{STEPS[currentStep - 1].name}</CardTitle>
+            <CardTitle>{STEPS[currentStep - 1]?.name || 'Step'}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Error Alert */}

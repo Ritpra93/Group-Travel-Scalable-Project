@@ -222,7 +222,7 @@ export function ExpenseForm({
 
               {/* Amount */}
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-brown">
+                <label className="mb-1.5 block text-sm font-medium text-zinc-900">
                   Amount <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
@@ -250,7 +250,7 @@ export function ExpenseForm({
 
               {/* Category */}
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-brown">
+                <label className="mb-1.5 block text-sm font-medium text-zinc-900">
                   Category <span className="text-red-500">*</span>
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -284,7 +284,7 @@ export function ExpenseForm({
 
               {/* Description */}
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-brown">
+                <label className="mb-1.5 block text-sm font-medium text-zinc-900">
                   Description
                 </label>
                 <textarea
@@ -320,7 +320,7 @@ export function ExpenseForm({
             <CardContent className="space-y-6">
               {/* Split Type Toggle */}
               <div>
-                <label className="mb-1.5 block text-sm font-medium text-brown">
+                <label className="mb-1.5 block text-sm font-medium text-zinc-900">
                   How to split?
                 </label>
                 <div className="flex gap-2">
@@ -366,7 +366,7 @@ export function ExpenseForm({
               {/* Equal Split: User Selection */}
               {splitType === 'EQUAL' && (
                 <div>
-                  <label className="mb-1.5 block text-sm font-medium text-brown">
+                  <label className="mb-1.5 block text-sm font-medium text-zinc-900">
                     Split with
                   </label>
                   <div className="space-y-2">
@@ -428,7 +428,7 @@ export function ExpenseForm({
               {splitType === 'CUSTOM' && (
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-sm font-medium text-brown">
+                    <label className="block text-sm font-medium text-zinc-900">
                       Custom amounts
                     </label>
                     {Math.abs(customSplitDifference) > 0.01 && (
@@ -496,7 +496,7 @@ export function ExpenseForm({
               {splitType === 'PERCENTAGE' && (
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label className="block text-sm font-medium text-brown">
+                    <label className="block text-sm font-medium text-zinc-900">
                       Percentage allocation
                     </label>
                     {Math.abs(percentageSplitDifference) > 0.01 && (

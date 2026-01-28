@@ -31,7 +31,7 @@ export default function CreateGroupPage() {
     handleSubmit,
     formState: { errors },
   } = useForm<CreateGroupFormData>({
-    resolver: zodResolver(createGroupSchema),
+    resolver: zodResolver(createGroupSchema) as any,
   });
 
   const onSubmit = (data: CreateGroupFormData) => {

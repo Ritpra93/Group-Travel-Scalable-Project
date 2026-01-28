@@ -55,6 +55,10 @@ export interface Group {
   settings: Record<string, unknown> | null;
   createdAt: string;
   updatedAt: string;
+  _count?: {
+    members?: number;
+    trips?: number;
+  };
 }
 
 export interface GroupMember {
@@ -93,11 +97,18 @@ export interface Trip {
   startDate: string;
   endDate: string;
   totalBudget: string | null; // Decimal as string
+  budget?: string | null; // Alias for totalBudget for backward compatibility
   currency: string;
   status: TripStatus;
   createdAt: string;
   updatedAt: string;
   group?: Group;
+  _count?: {
+    members?: number;
+    polls?: number;
+    expenses?: number;
+    itineraryItems?: number;
+  };
 }
 
 // ============================================================================
@@ -131,6 +142,7 @@ export interface PollOption {
   metadata: Record<string, unknown> | null;
   displayOrder: number;
   votes?: Vote[];
+  voteCount?: number; // Computed field from API
 }
 
 export interface Vote {

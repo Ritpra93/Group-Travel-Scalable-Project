@@ -200,13 +200,14 @@ export function PollCard({
       <CardContent className="space-y-3">
         {poll.options.map((option) => {
           const hasVotedForThis = userVotes.includes(option.id);
+          const voteCount = option.voteCount || 0;
           const percentage =
             poll.totalVotes > 0
-              ? Math.round((option.voteCount / poll.totalVotes) * 100)
+              ? Math.round((voteCount / poll.totalVotes) * 100)
               : 0;
           const isLeading =
-            option.voteCount === Math.max(...poll.options.map((o) => o.voteCount)) &&
-            option.voteCount > 0;
+            voteCount === Math.max(...poll.options.map((o) => o.voteCount || 0)) &&
+            voteCount > 0;
 
           return (
             <button
@@ -259,7 +260,7 @@ export function PollCard({
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-zinc-500">
-                  <span>{option.voteCount} votes</span>
+                  <span>{voteCount} votes</span>
                   <span className="text-zinc-300">•</span>
                   <span className="font-medium">{percentage}%</span>
                 </div>

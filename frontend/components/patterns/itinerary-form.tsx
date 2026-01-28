@@ -83,7 +83,7 @@ export function ItineraryForm({
     setValue,
     formState: { errors },
   } = useForm<CreateItineraryItemFormData>({
-    resolver: zodResolver(createItineraryItemSchema),
+    resolver: zodResolver(createItineraryItemSchema) as any,
     defaultValues: {
       title: defaultValues?.title || '',
       description: defaultValues?.description || '',

@@ -189,20 +189,20 @@ export default function ItineraryPage({ params }: ItineraryPageProps) {
               : `No ${ITEM_TYPE_LABELS[typeFilter].toLowerCase()} items found`
           }
           action={
-            typeFilter === 'ALL' ? (
-              <Link href={`/trips/${tripId}/itinerary/new`}>
-                <Button>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add First Item
-                </Button>
-              </Link>
-            ) : (
-              <Button variant="outline" onClick={() => setTypeFilter('ALL')}>
-                View All Items
-              </Button>
-            )
+            typeFilter !== 'ALL'
+              ? { label: 'View All Items', onClick: () => setTypeFilter('ALL') }
+              : undefined
           }
-        />
+        >
+          {typeFilter === 'ALL' && (
+            <Link href={`/trips/${tripId}/itinerary/new`}>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Add First Item
+              </Button>
+            </Link>
+          )}
+        </EmptyState>
       ) : viewMode === 'grouped' ? (
         // Grouped by Date View
         <div className="space-y-8">
@@ -212,7 +212,7 @@ export default function ItineraryPage({ params }: ItineraryPageProps) {
                 {date}
               </h2>
               <div className="space-y-3">
-                {groupedItems[date]
+                {(groupedItems[date] || [])
                   .sort(
                     (a, b) =>
                       new Date(a.startTime).getTime() - new Date(b.startTime).getTime()

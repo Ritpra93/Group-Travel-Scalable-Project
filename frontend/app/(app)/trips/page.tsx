@@ -162,7 +162,7 @@ export default function TripsPage() {
       {!isLoading && !error && hasTrips && data && (
         <div className="flex items-center justify-between pt-8 mt-8 border-t border-stone-200">
           <p className="text-sm text-stone-500 font-light">
-            Showing {trips.length} of {data.total} trips
+            Showing {trips.length} of {data.pagination.total} trips
           </p>
         </div>
       )}

@@ -75,7 +75,7 @@ export function PollForm({
     trigger,
     formState: { errors },
   } = useForm<CreatePollFormData>({
-    resolver: zodResolver(createPollSchema),
+    resolver: zodResolver(createPollSchema) as any,
     defaultValues: {
       title: '',
       description: '',

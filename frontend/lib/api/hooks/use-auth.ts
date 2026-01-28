@@ -29,23 +29,23 @@ export const authKeys = {
 export function useAuthUser(): UseQueryResult<User, ApiError> {
   const { isAuthenticated, setUser, clearAuth } = useAuthStore();
 
-  return useQuery<User, ApiError>({
+  const query = useQuery<User, ApiError>({
     queryKey: authKeys.me(),
     queryFn: authService.me,
     enabled: isAuthenticated, // Only fetch if user is authenticated
     staleTime: 10 * 60 * 1000, // 10 minutes
     retry: false, // Don't retry if unauthorized
-    onSuccess: (data) => {
-      // Update auth store with fresh user data
-      setUser(data);
-    },
-    onError: (error) => {
-      // If unauthorized, clear auth
-      if (error.code === 'UNAUTHORIZED') {
-        clearAuth();
-      }
-    },
   });
+
+  // Handle success/error in effect or via the returned data
+  if (query.data) {
+    setUser(query.data);
+  }
+  if (query.error && query.error.code === 'UNAUTHORIZED') {
+    clearAuth();
+  }
+
+  return query;
 }
 
 // ============================================================================
@@ -65,8 +65,8 @@ export function useLogin(): UseMutationResult<AuthResponse, ApiError, LoginReque
 
       // Store tokens first
       setTokens(data.tokens.accessToken);
-      // Then store user
-      setUser(data.user);
+      // Then store user (cast as User - additional fields will be fetched by useAuthUser)
+      setUser(data.user as User);
 
       // Invalidate and refetch user query
       queryClient.invalidateQueries({ queryKey: authKeys.me() });
@@ -94,8 +94,8 @@ export function useRegister(): UseMutationResult<AuthResponse, ApiError, Registe
 
       // Store tokens first
       setTokens(data.tokens.accessToken);
-      // Then store user
-      setUser(data.user);
+      // Then store user (cast as User - additional fields will be fetched by useAuthUser)
+      setUser(data.user as User);
 
       // Invalidate and refetch user query
       queryClient.invalidateQueries({ queryKey: authKeys.me() });
