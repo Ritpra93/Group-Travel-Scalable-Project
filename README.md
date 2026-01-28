@@ -1,4 +1,4 @@
-#Navio
+# Navio
 
 A full-stack collaborative trip planning platform for group travel coordination, featuring expense splitting, group polling, and shared itinerary management.
 
