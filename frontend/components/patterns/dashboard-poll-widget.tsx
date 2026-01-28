@@ -18,7 +18,7 @@ export interface DashboardPollWidgetProps {
 }
 
 export function DashboardPollWidget({ tripId, className }: DashboardPollWidgetProps) {
-  const { user } = useAuthStore();
+  const user = useAuthStore((state) => state.user);
   const { data: pollsData, isLoading } = usePolls(tripId, { status: 'ACTIVE', limit: 1 });
 
   const activePoll = pollsData?.data?.[0] as Poll | undefined;

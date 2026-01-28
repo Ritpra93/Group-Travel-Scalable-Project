@@ -17,7 +17,9 @@ interface AuthGuardProps {
 export function AuthGuard({ children }: AuthGuardProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { isAuthenticated, _hasHydrated } = useAuthStore();
+  // Use selectors to prevent re-renders on unrelated state changes
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const _hasHydrated = useAuthStore((state) => state._hasHydrated);
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {

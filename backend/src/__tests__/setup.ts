@@ -10,6 +10,11 @@ process.env.JWT_REFRESH_SECRET = 'test-jwt-refresh-secret-key-for-testing-only';
 process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_db';
 process.env.REDIS_URL = 'redis://localhost:6379';
 
+// Mock uuid (ESM module that Jest can't transform)
+jest.mock('uuid', () => ({
+  v4: jest.fn(() => 'mock-uuid-v4'),
+}));
+
 // Mock Redis functions
 jest.mock('../config/redis', () => ({
   cacheGet: jest.fn().mockResolvedValue(null),

@@ -6,6 +6,7 @@
 import { ExpensesService } from '../expenses.service';
 import { NotFoundError, ForbiddenError, ValidationError } from '../../../common/utils/errors';
 import { db } from '../../../config/kysely';
+import { calculateEqualSplits, calculatePercentageSplits } from '../expenses.utils';
 
 // Mock the database
 jest.mock('../../../config/kysely', () => ({
@@ -55,63 +56,26 @@ describe('ExpensesService', () => {
     jest.clearAllMocks();
   });
 
-  describe('Split Calculations', () => {
-    // Access private methods for testing via bracket notation
-    const service = new ExpensesService() as any;
+  describe('Split Calculations (via utils)', () => {
+    // These tests verify the service uses the utility functions correctly.
+    // Comprehensive tests for the calculation logic are in expenses.utils.test.ts
 
     describe('calculateEqualSplits', () => {
       it('should split equally among 2 users', () => {
-        const result = service.calculateEqualSplits(100, ['user1', 'user2']);
+        const result = calculateEqualSplits(100, ['user1', 'user2']);
 
         expect(result).toHaveLength(2);
         expect(result[0].amount).toBe(50);
         expect(result[1].amount).toBe(50);
-
-        // Verify sum equals total
-        const total = result.reduce((sum: number, s: any) => sum + s.amount, 0);
-        expect(total).toBe(100);
       });
 
       it('should split equally among 3 users with remainder', () => {
-        const result = service.calculateEqualSplits(100, ['user1', 'user2', 'user3']);
+        const result = calculateEqualSplits(100, ['user1', 'user2', 'user3']);
 
         expect(result).toHaveLength(3);
         expect(result[0].amount).toBe(33.33);
         expect(result[1].amount).toBe(33.33);
-        expect(result[2].amount).toBeCloseTo(33.34, 2); // Last user gets remainder
-
-        // Verify sum equals total
-        const total = result.reduce((sum: number, s: any) => sum + s.amount, 0);
-        expect(total).toBeCloseTo(100, 2);
-      });
-
-      it('should handle single user split', () => {
-        const result = service.calculateEqualSplits(100, ['user1']);
-
-        expect(result).toHaveLength(1);
-        expect(result[0].amount).toBe(100);
-        expect(result[0].userId).toBe('user1');
-      });
-
-      it('should handle 4 users with complex remainder', () => {
-        const result = service.calculateEqualSplits(99.99, ['u1', 'u2', 'u3', 'u4']);
-
-        expect(result).toHaveLength(4);
-
-        // Verify sum equals total
-        const total = result.reduce((sum: number, s: any) => sum + s.amount, 0);
-        expect(total).toBeCloseTo(99.99, 2);
-      });
-
-      it('should handle large number of users', () => {
-        const userIds = Array.from({ length: 10 }, (_, i) => `user${i}`);
-        const result = service.calculateEqualSplits(1000, userIds);
-
-        expect(result).toHaveLength(10);
-
-        // Verify sum equals total
-        const total = result.reduce((sum: number, s: any) => sum + s.amount, 0);
-        expect(total).toBe(1000);
+        expect(result[2].amount).toBe(33.34); // Last user gets remainder
       });
     });
 
@@ -121,7 +85,7 @@ describe('ExpensesService', () => {
           { userId: 'user1', percentage: 50 },
           { userId: 'user2', percentage: 50 },
         ];
-        const result = service.calculatePercentageSplits(100, splits);
+        const result = calculatePercentageSplits(100, splits);
 
         expect(result).toHaveLength(2);
         expect(result[0].amount).toBe(50);
@@ -133,39 +97,10 @@ describe('ExpensesService', () => {
           { userId: 'user1', percentage: 70 },
           { userId: 'user2', percentage: 30 },
         ];
-        const result = service.calculatePercentageSplits(100, splits);
+        const result = calculatePercentageSplits(100, splits);
 
         expect(result[0].amount).toBe(70);
         expect(result[1].amount).toBe(30);
-
-        const total = result.reduce((sum: number, s: any) => sum + s.amount, 0);
-        expect(total).toBe(100);
-      });
-
-      it('should handle three-way split with decimals', () => {
-        const splits = [
-          { userId: 'user1', percentage: 33.33 },
-          { userId: 'user2', percentage: 33.33 },
-          { userId: 'user3', percentage: 33.34 },
-        ];
-        const result = service.calculatePercentageSplits(100, splits);
-
-        // Verify sum equals total (within rounding tolerance)
-        const total = result.reduce((sum: number, s: any) => sum + s.amount, 0);
-        expect(total).toBeCloseTo(100, 1);
-      });
-
-      it('should handle rounding correctly for complex amounts', () => {
-        const splits = [
-          { userId: 'user1', percentage: 40 },
-          { userId: 'user2', percentage: 35 },
-          { userId: 'user3', percentage: 25 },
-        ];
-        const result = service.calculatePercentageSplits(99.99, splits);
-
-        // Verify sum equals total
-        const total = result.reduce((sum: number, s: any) => sum + s.amount, 0);
-        expect(total).toBeCloseTo(99.99, 2);
       });
     });
   });

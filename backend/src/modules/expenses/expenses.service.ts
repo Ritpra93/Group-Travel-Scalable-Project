@@ -3,6 +3,11 @@ import { db } from '../../config/kysely';
 import { NotFoundError, ForbiddenError, ValidationError } from '../../common/utils/errors';
 import { canCreateExpense, canDeleteExpense, canModifyExpense } from './expenses.middleware';
 import { emitExpenseCreated, emitExpenseUpdated, emitExpenseDeleted, emitSplitUpdated } from '../../websocket/emitters';
+import {
+  calculateEqualSplits,
+  calculatePercentageSplits,
+  calculateOptimalSettlements,
+} from './expenses.utils';
 import type {
   CreateExpenseInput,
   UpdateExpenseInput,
@@ -48,7 +53,7 @@ export class ExpensesService {
       if (!data.splitWith || data.splitWith.length === 0) {
         throw new ValidationError('splitWith is required for EQUAL split type');
       }
-      splitsToCreate = this.calculateEqualSplits(data.amount, data.splitWith);
+      splitsToCreate = calculateEqualSplits(data.amount, data.splitWith);
     } else if (data.splitType === 'CUSTOM') {
       if (!data.customSplits || data.customSplits.length === 0) {
         throw new ValidationError('customSplits is required for CUSTOM split type');
@@ -61,7 +66,7 @@ export class ExpensesService {
       if (!data.percentageSplits || data.percentageSplits.length === 0) {
         throw new ValidationError('percentageSplits is required for PERCENTAGE split type');
       }
-      splitsToCreate = this.calculatePercentageSplits(data.amount, data.percentageSplits);
+      splitsToCreate = calculatePercentageSplits(data.amount, data.percentageSplits);
     }
 
     // 3. Verify all split users are members of the trip's group
@@ -580,61 +585,15 @@ export class ExpensesService {
     // Get all balances first
     const balances = await this.getTripBalances(tripId, userId);
 
-    // Separate into creditors (positive balance = others owe them) and debtors (negative balance = they owe others)
-    const creditors = balances
-      .filter((b) => parseFloat(b.balance) > 0.01)
-      .map((b) => ({
-        userId: b.userId,
-        userName: b.userName,
-        amount: parseFloat(b.balance),
-      }))
-      .sort((a, b) => b.amount - a.amount); // Sort descending by amount
+    // Convert string balances to numbers for the pure calculation function
+    const numericBalances = balances.map((b) => ({
+      userId: b.userId,
+      userName: b.userName,
+      balance: parseFloat(b.balance),
+    }));
 
-    const debtors = balances
-      .filter((b) => parseFloat(b.balance) < -0.01)
-      .map((b) => ({
-        userId: b.userId,
-        userName: b.userName,
-        amount: Math.abs(parseFloat(b.balance)),
-      }))
-      .sort((a, b) => b.amount - a.amount); // Sort descending by amount
-
-    const settlements: import('./expenses.types').SettlementTransaction[] = [];
-
-    // Greedy matching: pair largest debtor with largest creditor
-    while (creditors.length > 0 && debtors.length > 0) {
-      const creditor = creditors[0];
-      const debtor = debtors[0];
-
-      // Settlement amount is the minimum of what debtor owes and what creditor is owed
-      const settlementAmount = Math.min(creditor.amount, debtor.amount);
-
-      if (settlementAmount > 0.01) {
-        settlements.push({
-          from: {
-            userId: debtor.userId,
-            userName: debtor.userName,
-          },
-          to: {
-            userId: creditor.userId,
-            userName: creditor.userName,
-          },
-          amount: settlementAmount.toFixed(2),
-        });
-      }
-
-      // Update remaining amounts
-      creditor.amount -= settlementAmount;
-      debtor.amount -= settlementAmount;
-
-      // Remove settled parties
-      if (creditor.amount < 0.01) {
-        creditors.shift();
-      }
-      if (debtor.amount < 0.01) {
-        debtors.shift();
-      }
-    }
+    // Use pure function for settlement calculation
+    const settlements = calculateOptimalSettlements(numericBalances);
 
     // Calculate summary
     const totalAmount = settlements
@@ -649,6 +608,7 @@ export class ExpensesService {
       },
     };
   }
+
 
   /**
    * Helper: Verify user is member of group
@@ -672,61 +632,7 @@ export class ExpensesService {
     return membership;
   }
 
-  /**
-   * Helper: Calculate equal splits among users
-   * @private
-   */
-  private calculateEqualSplits(
-    totalAmount: number,
-    userIds: string[]
-  ): { userId: string; amount: number }[] {
-    const numUsers = userIds.length;
-    const baseAmount = Math.floor((totalAmount * 100) / numUsers) / 100; // Round down to 2 decimals
-    const remainder = totalAmount - baseAmount * numUsers;
 
-    return userIds.map((userId, index) => ({
-      userId,
-      // Last user gets the remainder to ensure sum equals total
-      amount: index === numUsers - 1 ? baseAmount + remainder : baseAmount,
-    }));
-  }
-
-  /**
-   * Helper: Calculate percentage-based splits
-   * Converts percentage allocations to actual amounts, handling rounding
-   * @private
-   */
-  private calculatePercentageSplits(
-    totalAmount: number,
-    splits: { userId: string; percentage: number }[]
-  ): { userId: string; amount: number }[] {
-    // Calculate raw amounts based on percentages
-    const rawSplits = splits.map((s) => ({
-      userId: s.userId,
-      percentage: s.percentage,
-      rawAmount: (totalAmount * s.percentage) / 100,
-      amount: Math.floor((totalAmount * s.percentage) / 100 * 100) / 100, // Round down to 2 decimals
-    }));
-
-    // Calculate the sum of rounded amounts
-    const roundedSum = rawSplits.reduce((sum, s) => sum + s.amount, 0);
-    const remainder = Math.round((totalAmount - roundedSum) * 100) / 100;
-
-    // If there's a remainder due to rounding, add it to the largest split
-    if (Math.abs(remainder) > 0.001) {
-      // Find split with largest percentage to absorb remainder
-      const largestIndex = rawSplits.reduce(
-        (maxIdx, s, idx, arr) => (s.percentage > arr[maxIdx].percentage ? idx : maxIdx),
-        0
-      );
-      rawSplits[largestIndex].amount = Math.round((rawSplits[largestIndex].amount + remainder) * 100) / 100;
-    }
-
-    return rawSplits.map((s) => ({
-      userId: s.userId,
-      amount: s.amount,
-    }));
-  }
 
   /**
    * Helper: Get expense with full details (splits, payer, trip)
