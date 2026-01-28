@@ -105,11 +105,11 @@ This file serves as the authoritative build reference for AI assistants and deve
 | Role-based permissions (OWNER/ADMIN/MEMBER/VIEWER) | ✅ Complete | ✅ Complete | ✅ Implemented |
 | Dedicated trip workspaces | ✅ Complete | ✅ Complete | ✅ Implemented |
 | **Decision Support via Polling** |
-| Create polls (destinations, activities, dates) | ✅ 11 endpoints | 🔴 View-only | 🟡 Partial |
+| Create polls (destinations, activities, dates) | ✅ 11 endpoints | ✅ Complete | ✅ Implemented |
 | Asynchronous voting | ✅ Complete | ✅ Complete | ✅ Implemented |
 | Real-time consensus visibility | 🔴 Not started | 🔴 Not started | 🔴 Missing |
 | **Shared Itinerary** |
-| Time-based itinerary items | ✅ 5 endpoints | 🔴 Display-only | 🟡 Partial |
+| Time-based itinerary items | ✅ 5 endpoints | ✅ Complete | ✅ Implemented |
 | Collaborative editing | 🔴 Not started | 🔴 Not started | 🔴 Missing |
 | Conflict-aware updates | 🔴 Not started | 🔴 Not started | 🔴 Missing |
 | **Budgeting & Cost Splitting** |
@@ -137,7 +137,6 @@ This file serves as the authoritative build reference for AI assistants and deve
 
 | Issue | Location | Severity | Description |
 |-------|----------|----------|-------------|
-| Auth Guard Disabled | `frontend/components/providers/auth-guard.tsx:22` | **HIGH** | Route protection commented out due to redirect loop |
 | Prisma P1010 Bug | Database connection | **HIGH** | Using Kysely workaround instead of Prisma Client |
 | No Backend Tests | `backend/` | **HIGH** | Jest configured, zero test files exist |
 | Manual Migrations | Database | **MEDIUM** | Not production-ready, need proper migration system |
@@ -146,11 +145,8 @@ This file serves as the authoritative build reference for AI assistants and deve
 
 | Gap | Impact | Evidence |
 |-----|--------|----------|
-| Poll Creation UI | Users cannot create polls | Backend has 11 endpoints, frontend only has `PollWidget` for viewing |
-| Itinerary CRUD UI | Users cannot add/edit itinerary items | Backend has 5 endpoints, frontend only has `ItineraryTimeline` display |
 | Real-Time Updates | Users don't see live changes | Socket.IO installed (`socket.io`, `socket.io-client`) but zero handlers |
 | Interest Matching | No activity suggestions | `User.interests: String[]` exists but unused |
-| Dashboard Mock Data | Inconsistent UX | `dashboard/page.tsx` uses mock data for featured trip, polls, weather |
 
 ### Technical Debt Registry
 
@@ -166,16 +162,12 @@ This file serves as the authoritative build reference for AI assistants and deve
 ### Phase 0: Stabilization (Before New Features)
 | Priority | Task | File |
 |----------|------|------|
-| P0.1 | Fix auth guard loading state | `frontend/components/providers/auth-guard.tsx` |
-| P0.2 | Remove dashboard mock data | `frontend/app/(app)/dashboard/page.tsx` |
-| P0.3 | Add auth service tests | `backend/src/modules/auth/__tests__/` |
+| P0.1 | Add auth service tests | `backend/src/modules/auth/__tests__/` |
 
 ### Phase 1: Complete MVP Features (Backend Ready)
 | Priority | Feature | Effort | Dependencies |
 |----------|---------|--------|--------------|
-| P1 | Poll Creation UI | Medium | Backend ready - 11 endpoints |
-| P2 | Itinerary CRUD UI | Medium | Backend ready - 5 endpoints |
-| P3 | Expenses UI Polish | Low | None |
+| P1 | Expenses UI Polish | Low | None |
 
 ### Phase 2: Real-Time Foundation
 | Priority | Feature | Effort | Dependencies |
@@ -286,7 +278,7 @@ Login → JWT Access Token (15min) + Refresh Token (7d, httpOnly cookie)
      → All routes except /auth/* require auth middleware
 ```
 
-**⚠️ Auth guard currently disabled** - See `frontend/components/providers/auth-guard.tsx:22`
+Auth guard is active and handles route protection with proper hydration handling.
 
 ### Role-Based Permissions
 
@@ -311,7 +303,7 @@ Frontend and backend share implicit type contracts. No shared types package exis
 
 ## 9. API Reference (Incomplete Features)
 
-### Polls API (Backend Complete, Frontend Partial)
+### Polls API (Complete)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -329,7 +321,7 @@ Frontend and backend share implicit type contracts. No shared types package exis
 
 **Poll Types**: `PLACE`, `ACTIVITY`, `DATE`, `CUSTOM`
 
-### Itinerary API (Backend Complete, Frontend Partial)
+### Itinerary API (Complete)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
@@ -351,7 +343,7 @@ Frontend and backend share implicit type contracts. No shared types package exis
 | Global styles | `frontend/app/globals.css` |
 | Auth store | `frontend/lib/stores/auth-store.ts` |
 | API client | `frontend/lib/api/client.ts` |
-| Auth guard (DISABLED) | `frontend/components/providers/auth-guard.tsx` |
+| Auth guard | `frontend/components/providers/auth-guard.tsx` |
 | Backend entry | `backend/src/app.ts` |
 | Auth middleware | `backend/src/middleware/auth.middleware.ts` |
 | Database schema | `backend/prisma/schema.prisma` |
