@@ -105,3 +105,9 @@ Inspiration/
 aura-inspiration/
 current-page/
 current-issues/
+
+# Internal documentation (AI-generated, not for version control)
+docs/TECHNICAL_DECISIONS.md
+frontend/docs/FRONTEND_DECISIONS.md
+backend/docs/BACKEND_DECISIONS.md
+backend/docs/TESTING_DECISIONS.md
