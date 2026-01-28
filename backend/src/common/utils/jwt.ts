@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import type { StringValue } from 'ms';
 import { env } from '../../config/env';
 import { UnauthorizedError } from './errors';
 
@@ -35,7 +36,7 @@ export function generateAccessToken(userId: string, email: string): string {
   };
 
   return jwt.sign(payload, env.JWT_SECRET, {
-    expiresIn: env.JWT_EXPIRY,
+    expiresIn: env.JWT_EXPIRY as StringValue,
     issuer: 'trip-hub-api',
     audience: 'trip-hub-client',
   });
@@ -56,7 +57,7 @@ export function generateRefreshToken(userId: string, email: string): string {
   };
 
   return jwt.sign(payload, env.JWT_REFRESH_SECRET, {
-    expiresIn: env.JWT_REFRESH_EXPIRY,
+    expiresIn: env.JWT_REFRESH_EXPIRY as StringValue,
     issuer: 'trip-hub-api',
     audience: 'trip-hub-client',
   });
