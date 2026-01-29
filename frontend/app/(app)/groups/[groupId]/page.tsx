@@ -20,14 +20,8 @@ import {
 import { useGroup, useGroupMembers, useDeleteGroup, useLeaveGroup } from '@/lib/api/hooks/use-groups';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { GroupInterestsPanel } from '@/components/patterns/group-interests-panel';
 import { GroupRole } from '@/types';
 
 // ============================================================================
@@ -255,6 +249,14 @@ export default function GroupDetailPage({
               description="Add members to start collaborating on trips."
             />
           )}
+        </div>
+
+        {/* Group Interests Section */}
+        <div>
+          <h2 className="font-serif text-3xl font-semibold text-stone-900 mb-6 tracking-tight">
+            Shared Interests
+          </h2>
+          <GroupInterestsPanel groupId={groupId} />
         </div>
 
         {/* Danger Zone */}

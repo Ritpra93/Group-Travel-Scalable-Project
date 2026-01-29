@@ -17,6 +17,8 @@ import tripRoutes from './modules/trips/trips.routes';
 import pollRoutes, { tripPollsRouter } from './modules/polls/polls.routes';
 import expenseRoutes, { tripExpensesRouter } from './modules/expenses/expenses.routes';
 import itineraryRoutes from './modules/itinerary/itinerary.routes';
+import usersRoutes from './modules/users/users.routes';
+import groupInterestsRoutes from './modules/users/users.group.routes';
 
 /**
  * Create and configure Express application
@@ -151,6 +153,10 @@ export function createApp(): Application {
   app.use('/api/v1/trips', tripRoutes);
   app.use('/api/v1/polls', pollRoutes);
   app.use('/api/v1/expenses', expenseRoutes);
+  app.use('/api/v1/users', usersRoutes);
+
+  // Group-scoped routes
+  app.use('/api/v1/groups/:groupId/interests', groupInterestsRoutes);
 
   // Trip-scoped routes
   app.use('/api/v1/trips/:tripId/polls', tripPollsRouter);

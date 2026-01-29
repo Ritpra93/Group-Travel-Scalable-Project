@@ -74,7 +74,8 @@ This file serves as the authoritative build reference for AI assistants and deve
 │  ┌─────────────────────────────────────────────────────┐   │
 │  │ /api/v1                                              │   │
 │  │ ├── /auth (register, login, refresh, logout)        │   │
-│  │ ├── /groups (CRUD, members, roles)                  │   │
+│  │ ├── /users (profile, interests)                     │   │
+│  │ ├── /groups (CRUD, members, roles, interests)       │   │
 │  │ ├── /trips (CRUD, status)                           │   │
 │  │ ├── /polls (CRUD, vote, results)                    │   │
 │  │ ├── /expenses (CRUD, splits, balances, settlements) │   │
@@ -121,8 +122,8 @@ This file serves as the authoritative build reference for AI assistants and deve
 | Settlement suggestions | ✅ Complete | ✅ Complete | ✅ Implemented |
 | Multi-currency foundation | 🟡 Schema only | 🔴 Not started | 🟡 Partial |
 | **Common Interest Suggestions** |
-| Lightweight interest profiles | 🟡 Field exists | 🔴 Not started | 🔴 Missing |
-| Overlap detection | 🔴 Not started | 🔴 Not started | 🔴 Missing |
+| Lightweight interest profiles | ✅ Complete | ✅ Complete | ✅ Implemented |
+| Overlap detection | ✅ Complete | ✅ Complete | ✅ Implemented |
 | Activity suggestions | 🔴 Not started | 🔴 Not started | 🔴 Missing |
 
 ### Legend
@@ -146,7 +147,7 @@ This file serves as the authoritative build reference for AI assistants and deve
 
 | Gap | Impact | Evidence |
 |-----|--------|----------|
-| Interest Matching | No activity suggestions | `User.interests: String[]` exists but unused |
+| Activity Suggestions | No automated activity recommendations | Interest overlap implemented but no AI suggestions |
 
 ### Technical Debt Registry
 
@@ -197,12 +198,32 @@ This file serves as the authoritative build reference for AI assistants and deve
 - Frontend: Conflict UI with refresh option in edit pages
 - Pattern: Client sends item's `updatedAt` when fetched; server compares before update
 
-### Phase 4: Interest Matching
+### Phase 4: Interest Matching ✅ COMPLETE (P9-P10)
+| Priority | Feature | Status |
+|----------|---------|--------|
+| P9 | Interest Capture UI | ✅ Complete |
+| P10 | Overlap Detection Service | ✅ Complete |
+| P11 | Activity Suggestions | 🔴 Not started |
+
+**Interest Matching Implementation Notes:**
+- Backend: `backend/src/modules/users/` - Users module with profile & interest CRUD
+- Backend: `backend/src/common/constants/interests.ts` - 40 predefined interest categories
+- Backend: Interest overlap calculation with Jaccard-like similarity scoring
+- Frontend: `frontend/app/(app)/profile/page.tsx` - Profile page with interest selector
+- Frontend: `frontend/components/patterns/interest-selector.tsx` - Multi-select interest picker
+- Frontend: `frontend/components/patterns/group-interests-panel.tsx` - Group overlap analysis UI
+- API Routes:
+  - `GET/PUT /api/v1/users/me` - Profile management
+  - `PUT /api/v1/users/me/interests` - Update interests
+  - `GET /api/v1/users/interests/categories` - Get available categories
+  - `GET /api/v1/groups/:groupId/interests` - Group interest analysis
+
+### Phase 5: Future Enhancements
 | Priority | Feature | Effort | Dependencies |
 |----------|---------|--------|--------------|
-| P9 | Interest Capture UI | Low | None |
-| P10 | Overlap Detection Service | Medium | P9 |
-| P11 | Activity Suggestions | High | P10 |
+| P11 | Activity Suggestions | High | External API integration |
+| P12 | Collaborative Editing | High | Real-time cursors, OT/CRDT |
+| P13 | Multi-currency Support | Medium | Exchange rate API |
 
 ---
 
@@ -348,6 +369,18 @@ Frontend and backend share implicit type contracts. No shared types package exis
 
 **Item Types**: `ACCOMMODATION`, `TRANSPORT`, `ACTIVITY`, `MEAL`, `CUSTOM`
 
+### Users API (Complete)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/v1/users/me` | Get current user's profile |
+| PUT | `/api/v1/users/me` | Update current user's profile |
+| PUT | `/api/v1/users/me/interests` | Update current user's interests |
+| GET | `/api/v1/users/:userId` | Get user profile by ID |
+| GET | `/api/v1/users/interests/categories` | Get available interest categories |
+| GET | `/api/v1/groups/:groupId/interests` | Get group interest analysis |
+| GET | `/api/v1/groups/:groupId/interests/members` | Get group members with interests |
+
 ---
 
 ## 10. Critical Files Reference
@@ -366,6 +399,11 @@ Frontend and backend share implicit type contracts. No shared types package exis
 | Kysely types | `backend/src/config/database.types.ts` |
 | Layout tests | `tests/layout.spec.ts` |
 | Prisma workaround docs | `backend/docs/CRITICAL_CHANGES.md` |
+| Users module | `backend/src/modules/users/` |
+| Interest categories | `backend/src/common/constants/interests.ts` |
+| Profile page | `frontend/app/(app)/profile/page.tsx` |
+| Interest selector | `frontend/components/patterns/interest-selector.tsx` |
+| API error utilities | `frontend/lib/utils/api-errors.ts` |
 
 ---
 
