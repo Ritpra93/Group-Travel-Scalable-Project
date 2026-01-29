@@ -1,6 +1,6 @@
-# Navio
+# Wanderlust
 
-A full-stack collaborative trip planning platform for group travel coordination, featuring expense splitting, group polling, and shared itinerary management.
+A full-stack collaborative trip planning platform for group travel coordination, featuring real-time updates, expense splitting, group polling, shared itinerary management, and interest-based activity matching.
 
 ## Key Features
 
@@ -9,7 +9,9 @@ A full-stack collaborative trip planning platform for group travel coordination,
 - **Expense Tracking** — Log shared expenses with smart splitting (equal, custom, percentage) and settlement calculations
 - **Group Polling** — Vote on destinations, activities, and dates with configurable voting rules
 - **Shared Itinerary** — Build collaborative timelines with accommodations, transport, activities, and meals
-- **Real-Time Updates** — WebSocket integration for live collaboration (Socket.IO)
+- **Real-Time Updates** — Live collaboration via WebSocket (Socket.IO) for polls, expenses, and itinerary changes
+- **Interest Matching** — User interest profiles with group overlap detection for activity suggestions
+- **Conflict Detection** — Optimistic locking prevents concurrent edit conflicts
 
 ## Tech Stack
 
@@ -24,18 +26,19 @@ A full-stack collaborative trip planning platform for group travel coordination,
 | TanStack React Query | Server state & caching |
 | React Hook Form + Zod | Form handling & validation |
 | Axios | HTTP client with interceptors |
-| Framer Motion | Animations |
+| Socket.IO Client | Real-time event handling |
 
 ### Backend
 | Technology | Purpose |
 |------------|---------|
 | Node.js + Express.js | REST API server |
 | TypeScript | Type safety |
-| Prisma ORM | Database access & migrations |
+| Kysely | Type-safe SQL query builder |
+| Prisma | Schema definition (migrations) |
 | PostgreSQL | Primary database |
-| Redis | Session management & rate limiting |
+| Redis | Session management, rate limiting, token blacklist |
 | JWT | Authentication (access + refresh tokens) |
-| Socket.IO | Real-time communication |
+| Socket.IO | Real-time WebSocket server |
 | Zod | Request validation |
 | Winston | Structured logging |
 
@@ -54,15 +57,21 @@ wanderlust/
 ├── frontend/                    # Next.js application
 │   ├── app/                     # App Router (pages & layouts)
 │   │   ├── (auth)/              # Public routes (login, register)
-│   │   └── (app)/               # Protected routes (dashboard, trips, groups)
+│   │   └── (app)/               # Protected routes
+│   │       ├── dashboard/       # User dashboard
+│   │       ├── groups/          # Group management
+│   │       ├── trips/           # Trip workspaces
+│   │       └── profile/         # User profile & interests
 │   ├── components/              # React components
 │   │   ├── ui/                  # Atomic components (Button, Card, Input)
-│   │   ├── patterns/            # Composed components (TripCard, PollWidget)
+│   │   ├── patterns/            # Composed components (TripCard, InterestSelector)
 │   │   └── sections/            # Full-page sections
 │   ├── lib/                     # Utilities & services
 │   │   ├── api/                 # Axios client, services, React Query hooks
+│   │   ├── socket/              # Socket.IO client & hooks
 │   │   ├── stores/              # Zustand stores
-│   │   └── schemas/             # Zod validation schemas
+│   │   ├── schemas/             # Zod validation schemas
+│   │   └── utils/               # Helpers (cn, api-errors)
 │   └── types/                   # TypeScript type definitions
 │
 ├── backend/                     # Express.js API
@@ -71,20 +80,22 @@ wanderlust/
 │   │   ├── middleware/          # Auth, rate limiting, error handling
 │   │   ├── modules/             # Feature modules
 │   │   │   ├── auth/            # JWT authentication
+│   │   │   ├── users/           # Profile & interest management
 │   │   │   ├── groups/          # Group CRUD & membership
 │   │   │   ├── trips/           # Trip management
 │   │   │   ├── polls/           # Voting system
 │   │   │   ├── expenses/        # Expense tracking & splitting
 │   │   │   ├── itinerary/       # Trip timeline
 │   │   │   └── invitations/     # Email invitations
+│   │   ├── websocket/           # Socket.IO server & event emitters
 │   │   └── common/              # Shared utilities (errors, JWT, logging)
-│   └── prisma/                  # Database schema & migrations
+│   └── prisma/                  # Database schema
 │
 ├── tests/                       # Playwright E2E tests
 └── docker/                      # Docker Compose configuration
 ```
 
-### Database Schema (12 Models)
+### Database Schema (13 Models)
 - **User, Session** — Authentication & session management
 - **Group, GroupMember** — Travel groups with role-based access
 - **Trip** — Trip details with budget tracking
@@ -139,24 +150,77 @@ wanderlust/
 
 ## API Overview
 
+### Authentication
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/auth/register` | POST | Create user account |
 | `/auth/login` | POST | Authenticate & get tokens |
+| `/auth/refresh` | POST | Refresh access token |
+| `/auth/logout` | POST | Invalidate tokens |
+| `/auth/me` | GET | Get current user |
+
+### Users & Profile
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/users/me` | GET/PUT | Get/update profile |
+| `/users/me/interests` | PUT | Update interests |
+| `/users/interests/categories` | GET | Get available interests |
+
+### Groups
+| Endpoint | Method | Description |
+|----------|--------|-------------|
 | `/groups` | GET/POST | List/create groups |
-| `/groups/:id/members` | GET/PATCH/DELETE | Manage membership |
+| `/groups/:id` | GET/PATCH/DELETE | Group operations |
+| `/groups/:id/members` | GET | List members |
+| `/groups/:id/interests` | GET | Interest overlap analysis |
+
+### Trips
+| Endpoint | Method | Description |
+|----------|--------|-------------|
 | `/trips` | GET/POST | List/create trips |
-| `/trips/:id/polls` | GET/POST | Trip polling |
-| `/trips/:id/expenses` | GET/POST | Expense tracking |
-| `/trips/:id/itinerary` | GET/POST | Trip timeline |
-| `/invitations` | POST | Send group invitations |
+| `/trips/:id` | GET/PUT/DELETE | Trip operations |
+| `/trips/:id/polls` | GET/POST | Polls for trip |
+| `/trips/:id/expenses` | GET/POST | Expenses for trip |
+| `/trips/:id/itinerary` | GET/POST | Itinerary items |
+
+### Polls
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/polls/:id` | GET/PUT/DELETE | Poll operations |
+| `/polls/:id/vote` | POST/PUT/DELETE | Voting |
+| `/polls/:id/results` | GET | Vote counts |
+| `/polls/:id/close` | PATCH | Close poll |
+
+### Expenses
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/expenses/:id` | GET/PUT/DELETE | Expense operations |
+| `/expenses/:id/splits/:splitId` | PATCH | Mark split paid |
+| `/trips/:id/expenses/balances` | GET | User balances |
+| `/trips/:id/expenses/settlements` | GET | Settlement suggestions |
+
+## Real-Time Events
+
+The application uses Socket.IO for live updates. Events are scoped to trip rooms:
+
+| Event | Trigger | Data |
+|-------|---------|------|
+| `poll:created` | New poll created | Poll ID, title |
+| `poll:voted` | Vote cast | Poll ID, option ID |
+| `poll:closed` | Poll closed | Poll ID |
+| `expense:created` | New expense | Expense ID, title, amount |
+| `expense:updated` | Expense modified | Expense ID |
+| `expense:deleted` | Expense removed | Expense ID |
+| `itinerary:created` | New item | Item ID, title, type |
+| `itinerary:updated` | Item modified | Item ID |
+| `itinerary:deleted` | Item removed | Item ID |
 
 ## Skills Demonstrated
 
 ### Full-Stack Development
 - Modern React patterns (Server Components, App Router, React Query)
 - RESTful API design with Express.js
-- Relational database modeling with Prisma ORM
+- Relational database modeling with type-safe queries
 - Type-safe development with TypeScript end-to-end
 
 ### Authentication & Security
@@ -165,6 +229,12 @@ wanderlust/
 - Rate limiting with Redis
 - Security headers (Helmet.js)
 - Input validation with Zod
+
+### Real-Time Collaboration
+- WebSocket architecture with Socket.IO
+- Room-based event broadcasting (trip rooms)
+- Optimistic locking for conflict detection
+- Cache invalidation on real-time events
 
 ### Software Architecture
 - Modular backend architecture (routes → controllers → services)
@@ -181,16 +251,46 @@ wanderlust/
 ### Domain Complexity
 - Financial calculations with decimal precision
 - Expense splitting algorithms (equal, custom, percentage)
-- Real-time collaboration (WebSocket)
+- Interest overlap detection with similarity scoring
 - Multi-tenant data isolation (groups → trips → features)
+
+## Implementation Highlights
+
+### Conflict Detection
+The application implements optimistic locking to prevent lost updates:
+- Client sends `clientUpdatedAt` timestamp when editing
+- Server compares with current `updatedAt` before saving
+- Returns 409 Conflict if another user modified the resource
+- Frontend shows conflict UI with refresh option
+
+### Interest Matching
+Users can select from 40 predefined travel interests:
+- Profile page with multi-select interest picker
+- Group interest analysis shows overlap between members
+- Jaccard-like similarity scoring for compatibility
+- Top shared interests highlighted on group page
+
+### Expense Splitting
+Three splitting strategies with automatic balance calculation:
+- **Equal**: Divide evenly among selected members
+- **Custom**: Specify exact amounts per person
+- **Percentage**: Allocate by percentage shares
+- Settlement suggestions minimize number of transactions
+
+## Known Limitations
+
+- **Prisma P1010 Bug**: Using Kysely as query builder due to Prisma permission issue with PostgreSQL 14+
+- **Email Delivery**: Invitations store tokens but don't send actual emails
+- **Migrations**: Manual SQL migrations (not production-ready)
 
 ## Future Improvements
 
-- [ ] Add unit and integration tests for backend services
-- [ ] Implement email delivery for invitations (currently stores tokens)
-- [ ] Add mobile responsiveness and PWA support
-- [ ] Integrate mapping APIs for itinerary visualization
-- [ ] Add export functionality (PDF itineraries, expense reports)
+- [ ] Activity suggestions based on group interests (AI integration)
+- [ ] Multi-currency support with exchange rate conversion
+- [ ] Collaborative editing with real-time cursors
+- [ ] Mobile responsiveness and PWA support
+- [ ] Mapping APIs for itinerary visualization
+- [ ] Export functionality (PDF itineraries, expense reports)
 
 ## License
 
