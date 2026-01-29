@@ -30,6 +30,7 @@ import {
 import { useTrip } from '@/lib/api/hooks/use-trips';
 import { useTripExpenses, useTripBalances } from '@/lib/api/hooks/use-expenses';
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { useTripSocket } from '@/lib/socket';
 import { ExpenseCategoryIcon, getCategoryLabel } from '@/components/patterns/expense-category-icon';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -128,6 +129,9 @@ export default function TripDetailPage({
   const { tripId } = use(params);
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+
+  // Enable real-time updates for this trip
+  useTripSocket(tripId);
 
   // Fetch trip
   // Note: Assuming useTrip returns the same shape. If fields are missing in backend, we handle gracefully.

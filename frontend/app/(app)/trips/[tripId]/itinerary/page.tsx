@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { Plus, Calendar, ArrowLeft, Filter, List, LayoutGrid } from 'lucide-react';
 import { useTrip } from '@/lib/api/hooks/use-trips';
 import { useItinerary, useDeleteItineraryItem } from '@/lib/api/hooks/use-itinerary';
+import { useTripSocket } from '@/lib/socket';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ItineraryItemCard } from '@/components/patterns/itinerary-item-card';
@@ -46,6 +47,9 @@ export default function ItineraryPage({ params }: ItineraryPageProps) {
   const { tripId } = use(params);
   const [typeFilter, setTypeFilter] = useState<ItineraryItemType | 'ALL'>('ALL');
   const [viewMode, setViewMode] = useState<'list' | 'grouped'>('grouped');
+
+  // Enable real-time updates for this trip
+  useTripSocket(tripId);
 
   // Fetch trip and itinerary
   const { data: trip, isLoading: isLoadingTrip } = useTrip(tripId);

@@ -23,6 +23,7 @@ import {
   useUpdateSplitStatus,
 } from '@/lib/api/hooks/use-expenses';
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { useTripSocket } from '@/lib/socket';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -57,6 +58,9 @@ export default function TripExpensesPage({
   const { tripId } = use(params);
   const router = useRouter();
   const user = useAuthStore((state) => state.user);
+
+  // Enable real-time updates for this trip
+  useTripSocket(tripId);
 
   // Filter state
   const [filters, setFilters] = useState<FilterState>({ page: 1 });

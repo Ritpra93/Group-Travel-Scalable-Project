@@ -70,6 +70,23 @@ export interface SplitUpdatedData {
 }
 
 /**
+ * Itinerary event data types
+ */
+export interface ItineraryItemCreatedData {
+  itemId: string;
+  title: string;
+  type: string;
+}
+
+export interface ItineraryItemUpdatedData {
+  itemId: string;
+}
+
+export interface ItineraryItemDeletedData {
+  itemId: string;
+}
+
+/**
  * Server to client event types
  */
 export interface ServerToClientEvents {
@@ -81,6 +98,9 @@ export interface ServerToClientEvents {
   'expense:updated': (event: SocketEvent<ExpenseUpdatedData>) => void;
   'expense:deleted': (event: SocketEvent<ExpenseDeletedData>) => void;
   'expense:split:updated': (event: SocketEvent<SplitUpdatedData>) => void;
+  'itinerary:created': (event: SocketEvent<ItineraryItemCreatedData>) => void;
+  'itinerary:updated': (event: SocketEvent<ItineraryItemUpdatedData>) => void;
+  'itinerary:deleted': (event: SocketEvent<ItineraryItemDeletedData>) => void;
   'trip:joined': (data: { tripId: string }) => void;
   'trip:left': (data: { tripId: string }) => void;
   'error': (data: { message: string }) => void;

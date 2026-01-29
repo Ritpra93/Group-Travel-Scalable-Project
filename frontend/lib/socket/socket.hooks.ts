@@ -18,6 +18,7 @@ import {
 } from './socket.client';
 import { pollsKeys } from '@/lib/api/hooks/use-polls';
 import { expensesKeys } from '@/lib/api/hooks/use-expenses';
+import { itineraryKeys } from '@/lib/api/hooks/use-itinerary';
 import type {
   SocketEvent,
   PollVotedData,
@@ -28,6 +29,9 @@ import type {
   ExpenseUpdatedData,
   ExpenseDeletedData,
   SplitUpdatedData,
+  ItineraryItemCreatedData,
+  ItineraryItemUpdatedData,
+  ItineraryItemDeletedData,
 } from './socket.types';
 
 /**
@@ -174,6 +178,33 @@ export function useTripSocket(tripId: string | undefined) {
       queryClient.invalidateQueries({ queryKey: expensesKeys.settlements(tripId) });
     };
 
+    // ========================================================================
+    // Itinerary Event Handlers
+    // ========================================================================
+
+    const handleItineraryCreated = (event: SocketEvent<ItineraryItemCreatedData>) => {
+      if (!shouldInvalidate(event.userId)) return;
+      console.log('[Socket] Itinerary item created:', event.data);
+
+      queryClient.invalidateQueries({ queryKey: itineraryKeys.list(tripId) });
+    };
+
+    const handleItineraryUpdated = (event: SocketEvent<ItineraryItemUpdatedData>) => {
+      if (!shouldInvalidate(event.userId)) return;
+      console.log('[Socket] Itinerary item updated:', event.data);
+
+      queryClient.invalidateQueries({ queryKey: itineraryKeys.detail(tripId, event.data.itemId) });
+      queryClient.invalidateQueries({ queryKey: itineraryKeys.list(tripId) });
+    };
+
+    const handleItineraryDeleted = (event: SocketEvent<ItineraryItemDeletedData>) => {
+      if (!shouldInvalidate(event.userId)) return;
+      console.log('[Socket] Itinerary item deleted:', event.data);
+
+      queryClient.removeQueries({ queryKey: itineraryKeys.detail(tripId, event.data.itemId) });
+      queryClient.invalidateQueries({ queryKey: itineraryKeys.list(tripId) });
+    };
+
     // Register event listeners
     socket.on('poll:voted', handlePollVoted);
     socket.on('poll:created', handlePollCreated);
@@ -183,6 +214,9 @@ export function useTripSocket(tripId: string | undefined) {
     socket.on('expense:updated', handleExpenseUpdated);
     socket.on('expense:deleted', handleExpenseDeleted);
     socket.on('expense:split:updated', handleSplitUpdated);
+    socket.on('itinerary:created', handleItineraryCreated);
+    socket.on('itinerary:updated', handleItineraryUpdated);
+    socket.on('itinerary:deleted', handleItineraryDeleted);
 
     // Cleanup
     return () => {
@@ -194,6 +228,9 @@ export function useTripSocket(tripId: string | undefined) {
       socket.off('expense:updated', handleExpenseUpdated);
       socket.off('expense:deleted', handleExpenseDeleted);
       socket.off('expense:split:updated', handleSplitUpdated);
+      socket.off('itinerary:created', handleItineraryCreated);
+      socket.off('itinerary:updated', handleItineraryUpdated);
+      socket.off('itinerary:deleted', handleItineraryDeleted);
 
       // Leave the room when unmounting
       if (joinedRef.current === tripId) {

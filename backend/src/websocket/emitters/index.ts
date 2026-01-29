@@ -16,3 +16,9 @@ export {
   emitExpenseDeleted,
   emitSplitUpdated,
 } from './expenses.emitter';
+
+export {
+  emitItineraryItemCreated,
+  emitItineraryItemUpdated,
+  emitItineraryItemDeleted,
+} from './itinerary.emitter';

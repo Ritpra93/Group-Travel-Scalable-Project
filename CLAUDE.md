@@ -107,9 +107,10 @@ This file serves as the authoritative build reference for AI assistants and deve
 | **Decision Support via Polling** |
 | Create polls (destinations, activities, dates) | ✅ 11 endpoints | ✅ Complete | ✅ Implemented |
 | Asynchronous voting | ✅ Complete | ✅ Complete | ✅ Implemented |
-| Real-time consensus visibility | 🔴 Not started | 🔴 Not started | 🔴 Missing |
+| Real-time poll updates | ✅ Complete | ✅ Complete | ✅ Implemented |
 | **Shared Itinerary** |
 | Time-based itinerary items | ✅ 5 endpoints | ✅ Complete | ✅ Implemented |
+| Real-time itinerary updates | ✅ Complete | ✅ Complete | ✅ Implemented |
 | Collaborative editing | 🔴 Not started | 🔴 Not started | 🔴 Missing |
 | Conflict-aware updates | 🔴 Not started | 🔴 Not started | 🔴 Missing |
 | **Budgeting & Cost Splitting** |
@@ -138,14 +139,13 @@ This file serves as the authoritative build reference for AI assistants and deve
 | Issue | Location | Severity | Description |
 |-------|----------|----------|-------------|
 | Prisma P1010 Bug | Database connection | **HIGH** | Using Kysely workaround instead of Prisma Client |
-| No Backend Tests | `backend/` | **HIGH** | Jest configured, zero test files exist |
+| Backend TypeScript Errors | `backend/` | **MEDIUM** | Pre-existing TS errors (unused vars, Redis types) |
 | Manual Migrations | Database | **MEDIUM** | Not production-ready, need proper migration system |
 
 ### Feature Gaps
 
 | Gap | Impact | Evidence |
 |-----|--------|----------|
-| Real-Time Updates | Users don't see live changes | Socket.IO installed (`socket.io`, `socket.io-client`) but zero handlers |
 | Interest Matching | No activity suggestions | `User.interests: String[]` exists but unused |
 
 ### Technical Debt Registry
@@ -153,33 +153,40 @@ This file serves as the authoritative build reference for AI assistants and deve
 1. **Kysely Migration** - Must migrate back to Prisma when P1010 fixed
 2. **Database Types Sync** - `database.types.ts` must match `schema.prisma`
 3. **Layout Debug Files** - `/tests/` contains debug test files from Jan 19 layout fixes
-4. **Expenses UI** - Per commit "needs to fix UI all around"
 
 ---
 
 ## 6. Recommended Build Sequence
 
-### Phase 0: Stabilization (Before New Features)
-| Priority | Task | File |
-|----------|------|------|
-| P0.1 | Add auth service tests | `backend/src/modules/auth/__tests__/` |
+### Phase 0: Stabilization ✅ COMPLETE
+| Priority | Task | Status |
+|----------|------|--------|
+| P0.1 | Add auth service tests | ✅ Complete |
 
-### Phase 1: Complete MVP Features (Backend Ready)
-| Priority | Feature | Effort | Dependencies |
-|----------|---------|--------|--------------|
-| P1 | Expenses UI Polish | Low | None |
+### Phase 1: Complete MVP Features ✅ COMPLETE
+| Priority | Feature | Status |
+|----------|---------|--------|
+| P1 | Expenses UI Polish | ✅ Complete |
+| P1.1 | Frontend TypeScript Errors | ✅ Complete |
 
-### Phase 2: Real-Time Foundation
-| Priority | Feature | Effort | Dependencies |
-|----------|---------|--------|--------------|
-| P4 | Socket.IO Event Architecture | High | Backend socket handlers |
-| P5 | Live Poll Results | Low | P4 |
-| P6 | Live Expense Updates | Low | P4 |
+### Phase 2: Real-Time Foundation ✅ COMPLETE
+| Priority | Feature | Status |
+|----------|---------|--------|
+| P4 | Socket.IO Event Architecture | ✅ Complete |
+| P5 | Live Poll Results | ✅ Complete |
+| P6 | Live Expense Updates | ✅ Complete |
+| P6.1 | Live Itinerary Updates | ✅ Complete |
+
+**Real-Time Implementation Notes:**
+- Backend: `backend/src/websocket/` - Socket.IO server with Redis adapter
+- Frontend: `frontend/lib/socket/` - Client hooks and event handlers
+- Events: 11 event types (4 poll, 4 expense, 3 itinerary)
+- Integration: `useTripSocket(tripId)` hook in trip pages
 
 ### Phase 3: Collaborative Features
 | Priority | Feature | Effort | Dependencies |
 |----------|---------|--------|--------------|
-| P7 | Conflict Detection | Medium | P4, event system |
+| P7 | Conflict Detection | Medium | Event system |
 | P8 | Optimistic Locking | Medium | P7 |
 
 ### Phase 4: Interest Matching (MVP Complete)

@@ -19,6 +19,11 @@ import {
   canModifyItineraryItem,
   canDeleteItineraryItem,
 } from './itinerary.middleware';
+import {
+  emitItineraryItemCreated,
+  emitItineraryItemUpdated,
+  emitItineraryItemDeleted,
+} from '../../websocket/emitters';
 
 /**
  * Service class for handling itinerary business logic
@@ -100,6 +105,9 @@ export class ItineraryService {
 
       return newItem;
     });
+
+    // Emit real-time event
+    emitItineraryItemCreated(data.tripId, result.id, result.title, result.type, userId);
 
     // Get full item with creator and trip details
     return this.getItemWithDetails(data.tripId, result.id);
@@ -318,6 +326,9 @@ export class ItineraryService {
       })
       .execute();
 
+    // Emit real-time event
+    emitItineraryItemUpdated(tripId, itemId, userId);
+
     // Return updated item
     return this.getItemWithDetails(tripId, itemId);
   }
@@ -352,6 +363,9 @@ export class ItineraryService {
 
     // Delete item
     await db.deleteFrom('itinerary_items').where('id', '=', itemId).where('tripId', '=', tripId).execute();
+
+    // Emit real-time event
+    emitItineraryItemDeleted(tripId, itemId, userId);
   }
 
   /**

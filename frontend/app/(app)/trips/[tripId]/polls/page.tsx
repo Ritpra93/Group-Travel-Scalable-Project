@@ -16,6 +16,7 @@ import {
   useClosePoll,
   useDeletePoll,
 } from '@/lib/api/hooks/use-polls';
+import { useTripSocket } from '@/lib/socket';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { PollCard } from '@/components/patterns/poll-card';
@@ -30,6 +31,9 @@ interface PollsPageProps {
 export default function PollsPage({ params }: PollsPageProps) {
   const { tripId } = use(params);
   const [statusFilter, setStatusFilter] = useState<PollStatus | 'ALL'>('ALL');
+
+  // Enable real-time updates for this trip
+  useTripSocket(tripId);
 
   // Fetch trip and polls
   const { data: trip, isLoading: isLoadingTrip } = useTrip(tripId);
