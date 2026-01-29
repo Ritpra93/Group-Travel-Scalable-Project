@@ -11,7 +11,7 @@ import Link from 'next/link';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ArrowLeft, DollarSign, Info } from 'lucide-react';
+import { ArrowLeft, DollarSign, Info, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useTrip } from '@/lib/api/hooks/use-trips';
 import { useExpense, useUpdateExpense } from '@/lib/api/hooks/use-expenses';
 import { Button } from '@/components/ui/button';
@@ -24,6 +24,7 @@ import {
 } from '@/components/patterns/expense-category-icon';
 import { EXPENSE_CATEGORIES } from '@/lib/schemas/expenses.schema';
 import { cn } from '@/lib/utils/cn';
+import { isConflictError, getErrorMessage } from '@/lib/utils/api-errors';
 import type { ExpenseCategory } from '@/types/models.types';
 
 // ============================================================================
@@ -53,12 +54,13 @@ export default function EditExpensePage({
   const { tripId, expenseId } = use(params);
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConflict, setShowConflict] = useState(false);
 
   // Fetch trip data
   const { data: trip, isLoading: tripLoading } = useTrip(tripId);
 
   // Fetch expense data
-  const { data: expense, isLoading: expenseLoading, error: expenseError } = useExpense(expenseId);
+  const { data: expense, isLoading: expenseLoading, error: expenseError, refetch } = useExpense(expenseId);
 
   // Update mutation
   const updateExpense = useUpdateExpense(expenseId, tripId);
@@ -124,9 +126,16 @@ export default function EditExpensePage({
     );
   }
 
+  // Handle refresh after conflict
+  const handleRefresh = async () => {
+    setShowConflict(false);
+    await refetch();
+  };
+
   // Handle form submission
   const onSubmit = async (data: UpdateExpenseFormData) => {
     setIsSubmitting(true);
+    setShowConflict(false);
     try {
       await updateExpense.mutateAsync({
         title: data.title,
@@ -135,10 +144,14 @@ export default function EditExpensePage({
         amount: data.amount,
         paidAt: data.paidAt,
         receiptUrl: data.receiptUrl || undefined,
+        // Send the expense's updatedAt for conflict detection
+        clientUpdatedAt: expense?.updatedAt,
       });
       router.push(`/trips/${tripId}/expenses/${expenseId}`);
     } catch (error) {
-      // Error is handled by mutation
+      if (isConflictError(error)) {
+        setShowConflict(true);
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -166,6 +179,41 @@ export default function EditExpensePage({
 
       {/* Form */}
       <div className="max-w-2xl mx-auto px-6 pt-8">
+        {/* Conflict Error Display */}
+        {showConflict && (
+          <div className="mb-6 flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl">
+            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="font-medium text-amber-800">
+                This expense was modified by another user
+              </h3>
+              <p className="mt-1 text-sm text-amber-700">
+                Someone else updated this expense while you were editing. Please refresh to see their changes, then make your updates.
+              </p>
+              <div className="mt-3 flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefresh}
+                  className="gap-1"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Refresh
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => router.push(`/trips/${tripId}/expenses`)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Info banner about splits */}
         <div className="mb-6 flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl">
           <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
@@ -313,10 +361,10 @@ export default function EditExpensePage({
           </div>
         </form>
 
-        {/* Error message */}
-        {updateExpense.isError && (
+        {/* Error message (non-conflict errors) */}
+        {updateExpense.isError && !showConflict && (
           <div className="mt-4 p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-sm">
-            Failed to update expense. Please try again.
+            {getErrorMessage(updateExpense.error)}
           </div>
         )}
       </div>

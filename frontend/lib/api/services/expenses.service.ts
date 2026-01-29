@@ -39,6 +39,8 @@ export interface UpdateExpenseDTO {
   amount?: number;
   paidAt?: string;
   receiptUrl?: string;
+  /** Optimistic locking: send the updatedAt from when expense was fetched */
+  clientUpdatedAt?: string;
 }
 
 export interface ListExpensesParams {

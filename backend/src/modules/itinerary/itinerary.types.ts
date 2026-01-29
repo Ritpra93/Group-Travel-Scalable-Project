@@ -97,6 +97,8 @@ export const UpdateItineraryItemSchema = z
       .optional(),
     url: z.string().url('Invalid URL').max(1000, 'URL must be at most 1000 characters').optional(),
     notes: z.string().max(2000, 'Notes must be at most 2000 characters').optional(),
+    // Optimistic locking: client sends their version of updatedAt
+    clientUpdatedAt: z.coerce.date().optional(),
   })
   .refine(
     (data) => {

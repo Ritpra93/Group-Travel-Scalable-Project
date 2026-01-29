@@ -5,12 +5,15 @@
 
 'use client';
 
-import { use } from 'react';
+import { use, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ArrowLeft, AlertTriangle, RefreshCw } from 'lucide-react';
 import { useTrip } from '@/lib/api/hooks/use-trips';
 import { useItineraryItem, useUpdateItineraryItem } from '@/lib/api/hooks/use-itinerary';
 import { ItineraryForm } from '@/components/patterns/itinerary-form';
+import { Button } from '@/components/ui/button';
+import { isConflictError, getErrorMessage } from '@/lib/utils/api-errors';
 import type { CreateItineraryItemFormData } from '@/lib/schemas/itinerary.schema';
 
 interface EditItineraryItemPageProps {
@@ -19,18 +22,23 @@ interface EditItineraryItemPageProps {
 
 export default function EditItineraryItemPage({ params }: EditItineraryItemPageProps) {
   const { tripId, itemId } = use(params);
+  const router = useRouter();
+  const [showConflict, setShowConflict] = useState(false);
 
   // Fetch trip for context
   const { data: trip, isLoading: isLoadingTrip } = useTrip(tripId);
 
   // Fetch existing item
-  const { data: item, isLoading: isLoadingItem, error: itemError } = useItineraryItem(tripId, itemId);
+  const { data: item, isLoading: isLoadingItem, error: itemError, refetch } = useItineraryItem(tripId, itemId);
 
   // Update mutation
   const updateItem = useUpdateItineraryItem(tripId, itemId);
 
   const handleSubmit = (data: CreateItineraryItemFormData) => {
-    // Transform form data to API format
+    // Clear any previous conflict state
+    setShowConflict(false);
+
+    // Transform form data to API format, including clientUpdatedAt for optimistic locking
     const apiData = {
       title: data.title,
       description: data.description || undefined,
@@ -41,9 +49,22 @@ export default function EditItineraryItemPage({ params }: EditItineraryItemPageP
       cost: data.cost,
       url: data.url || undefined,
       notes: data.notes || undefined,
+      // Send the item's updatedAt for conflict detection
+      clientUpdatedAt: item?.updatedAt,
     };
 
-    updateItem.mutate(apiData);
+    updateItem.mutate(apiData, {
+      onError: (error) => {
+        if (isConflictError(error)) {
+          setShowConflict(true);
+        }
+      },
+    });
+  };
+
+  const handleRefresh = async () => {
+    setShowConflict(false);
+    await refetch();
   };
 
   const isLoading = isLoadingTrip || isLoadingItem;
@@ -104,11 +125,46 @@ export default function EditItineraryItemPage({ params }: EditItineraryItemPageP
         </div>
       </div>
 
-      {/* Error Display */}
-      {updateItem.error && (
+      {/* Conflict Error Display */}
+      {showConflict && (
+        <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <h3 className="font-medium text-amber-800">
+                This item was modified by another user
+              </h3>
+              <p className="mt-1 text-sm text-amber-700">
+                Someone else updated this item while you were editing. Please refresh to see their changes, then make your updates.
+              </p>
+              <div className="mt-3 flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRefresh}
+                  className="gap-1"
+                >
+                  <RefreshCw className="w-4 h-4" />
+                  Refresh
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => router.push(`/trips/${tripId}/itinerary`)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* General Error Display */}
+      {updateItem.error && !showConflict && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
           <p className="text-sm text-red-600">
-            {(updateItem.error as Error).message || 'Failed to update item'}
+            {getErrorMessage(updateItem.error)}
           </p>
         </div>
       )}

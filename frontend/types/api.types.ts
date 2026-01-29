@@ -147,6 +147,8 @@ export interface UpdateExpenseRequest {
   paidBy?: string;
   paidAt?: string;
   receiptUrl?: string;
+  /** Optimistic locking: send the updatedAt from when expense was fetched */
+  clientUpdatedAt?: string;
 }
 
 export interface UpdateExpenseSplitRequest {
@@ -218,6 +220,8 @@ export interface UpdateItineraryItemRequest {
   cost?: number;
   url?: string;
   notes?: string;
+  /** Optimistic locking: send the updatedAt from when item was fetched */
+  clientUpdatedAt?: string;
 }
 
 // ============================================================================

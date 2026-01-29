@@ -1,6 +1,6 @@
 import { createId } from '@paralleldrive/cuid2';
 import { db } from '../../config/kysely';
-import { NotFoundError, ForbiddenError, ValidationError } from '../../common/utils/errors';
+import { NotFoundError, ForbiddenError, ValidationError, ConflictError } from '../../common/utils/errors';
 import { canCreateExpense, canDeleteExpense, canModifyExpense } from './expenses.middleware';
 import { emitExpenseCreated, emitExpenseUpdated, emitExpenseDeleted, emitSplitUpdated } from '../../websocket/emitters';
 import {
@@ -344,12 +344,28 @@ export class ExpensesService {
     const expense = await db
       .selectFrom('expenses as e')
       .innerJoin('trips as t', 't.id', 'e.tripId')
-      .select(['e.id', 'e.paidBy', 't.groupId', 't.id as tripId'])
+      .select(['e.id', 'e.paidBy', 'e.updatedAt', 't.groupId', 't.id as tripId'])
       .where('e.id', '=', expenseId)
       .executeTakeFirst();
 
     if (!expense) {
       throw new NotFoundError('Expense not found');
+    }
+
+    // Optimistic locking: check if expense was modified since client last fetched it
+    if (data.clientUpdatedAt) {
+      const serverUpdatedAt = new Date(expense.updatedAt).getTime();
+      const clientUpdatedAt = new Date(data.clientUpdatedAt).getTime();
+
+      if (serverUpdatedAt !== clientUpdatedAt) {
+        throw new ConflictError(
+          'This expense was modified by another user. Please refresh and try again.',
+          {
+            serverUpdatedAt: expense.updatedAt,
+            clientUpdatedAt: data.clientUpdatedAt,
+          }
+        );
+      }
     }
 
     // Verify user is member and has permission

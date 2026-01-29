@@ -183,13 +183,21 @@ This file serves as the authoritative build reference for AI assistants and deve
 - Events: 11 event types (4 poll, 4 expense, 3 itinerary)
 - Integration: `useTripSocket(tripId)` hook in trip pages
 
-### Phase 3: Collaborative Features
-| Priority | Feature | Effort | Dependencies |
-|----------|---------|--------|--------------|
-| P7 | Conflict Detection | Medium | Event system |
-| P8 | Optimistic Locking | Medium | P7 |
+### Phase 3: Collaborative Features ✅ COMPLETE
+| Priority | Feature | Status |
+|----------|---------|--------|
+| P7 | Conflict Detection | ✅ Complete |
+| P8 | Optimistic Locking | ✅ Complete |
 
-### Phase 4: Interest Matching (MVP Complete)
+**Conflict Detection Implementation Notes:**
+- Backend: `clientUpdatedAt` field in update schemas (itinerary, expenses)
+- Backend: Version check in services using `updatedAt` timestamp comparison
+- Backend: `ConflictError` (409) thrown when concurrent edit detected
+- Frontend: `isConflictError()` utility in `frontend/lib/utils/api-errors.ts`
+- Frontend: Conflict UI with refresh option in edit pages
+- Pattern: Client sends item's `updatedAt` when fetched; server compares before update
+
+### Phase 4: Interest Matching
 | Priority | Feature | Effort | Dependencies |
 |----------|---------|--------|--------------|
 | P9 | Interest Capture UI | Low | None |

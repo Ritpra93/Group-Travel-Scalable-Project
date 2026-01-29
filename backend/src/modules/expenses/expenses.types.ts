@@ -116,6 +116,8 @@ export const UpdateExpenseSchema = z.object({
   amount: z.number().positive('Amount must be positive').multipleOf(0.01, 'Amount can have at most 2 decimal places').optional(),
   paidAt: z.coerce.date().optional(),
   receiptUrl: z.string().url('Invalid receipt URL').optional(),
+  // Optimistic locking: client sends their version of updatedAt
+  clientUpdatedAt: z.coerce.date().optional(),
 });
 
 /**

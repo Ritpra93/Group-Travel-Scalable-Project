@@ -13,6 +13,7 @@ import {
   NotFoundError,
   ForbiddenError,
   ValidationError,
+  ConflictError,
 } from '../../common/utils/errors';
 import {
   canCreateItineraryItem,
@@ -254,13 +255,29 @@ export class ItineraryService {
     // Get item and verify it exists and belongs to trip
     const existingItem = await db
       .selectFrom('itinerary_items')
-      .select(['id', 'tripId', 'createdBy', 'startTime', 'endTime'])
+      .select(['id', 'tripId', 'createdBy', 'startTime', 'endTime', 'updatedAt'])
       .where('id', '=', itemId)
       .where('tripId', '=', tripId)
       .executeTakeFirst();
 
     if (!existingItem) {
       throw new NotFoundError('Itinerary item not found');
+    }
+
+    // Optimistic locking: check if item was modified since client last fetched it
+    if (data.clientUpdatedAt) {
+      const serverUpdatedAt = new Date(existingItem.updatedAt).getTime();
+      const clientUpdatedAt = new Date(data.clientUpdatedAt).getTime();
+
+      if (serverUpdatedAt !== clientUpdatedAt) {
+        throw new ConflictError(
+          'This item was modified by another user. Please refresh and try again.',
+          {
+            serverUpdatedAt: existingItem.updatedAt,
+            clientUpdatedAt: data.clientUpdatedAt,
+          }
+        );
+      }
     }
 
     // Verify trip membership and permissions
