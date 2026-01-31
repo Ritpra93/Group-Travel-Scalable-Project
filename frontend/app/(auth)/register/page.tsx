@@ -11,7 +11,6 @@ import Link from 'next/link';
 import { useRegister } from '@/lib/api/hooks/use-auth';
 import { registerSchema, type RegisterFormData } from '@/lib/schemas/auth.schema';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 
 export default function RegisterPage() {
   const { mutate: register, isPending, error } = useRegister();
@@ -26,25 +25,22 @@ export default function RegisterPage() {
       name: '',
       email: '',
       password: '',
-      confirmPassword: '',
     },
   });
 
   const onSubmit = (data: RegisterFormData) => {
-    // Remove confirmPassword before sending to API
-    const { confirmPassword, ...registerData } = data;
-    register(registerData);
+    register(data);
   };
 
   return (
     <div>
       {/* Header */}
-      <div className="mb-8 text-center">
-        <h1 className="mb-2 font-serif text-3xl font-bold text-dark">
-          Start Your Journey
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+          Create your account
         </h1>
-        <p className="text-stone-600">
-          Create an account to plan amazing trips
+        <p className="text-gray-500">
+          Get started with collaborative trip planning
         </p>
       </div>
 
@@ -59,61 +55,91 @@ export default function RegisterPage() {
 
       {/* Register Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        <Input
-          label="Full Name"
-          type="text"
-          placeholder="John Doe"
-          error={errors.name?.message}
-          {...registerField('name')}
-          required
-        />
-
-        <Input
-          label="Email"
-          type="email"
-          placeholder="your@email.com"
-          error={errors.email?.message}
-          {...registerField('email')}
-          required
-        />
-
-        <Input
-          label="Password"
-          type="password"
-          placeholder="••••••••"
-          helperText="Must be at least 8 characters with uppercase, lowercase, and number"
-          error={errors.password?.message}
-          {...registerField('password')}
-          required
-        />
-
-        <Input
-          label="Confirm Password"
-          type="password"
-          placeholder="••••••••"
-          error={errors.confirmPassword?.message}
-          {...registerField('confirmPassword')}
-          required
-        />
-
-        {/* Terms and Conditions */}
-        <div className="flex items-start gap-2 text-sm text-stone-600">
-          <input
-            type="checkbox"
-            id="terms"
-            required
-            className="mt-0.5 h-4 w-4 rounded border-stone-300 text-primary focus:ring-primary"
-          />
-          <label htmlFor="terms">
-            I agree to the{' '}
-            <Link href="/terms" className="text-primary hover:underline">
-              Terms of Service
-            </Link>{' '}
-            and{' '}
-            <Link href="/privacy" className="text-primary hover:underline">
-              Privacy Policy
-            </Link>
+        {/* Full Name Field */}
+        <div>
+          <label
+            htmlFor="name"
+            className="block text-sm font-medium text-gray-700 mb-1.5"
+          >
+            Full Name
           </label>
+          <input
+            id="name"
+            type="text"
+            placeholder="Alex Rivera"
+            className={`
+              w-full h-12 rounded-lg border px-4 text-base
+              transition-all duration-200
+              placeholder:text-gray-400
+              focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400
+              ${errors.name ? 'border-red-500' : 'border-gray-200'}
+            `}
+            {...registerField('name')}
+          />
+          {errors.name && (
+            <p className="mt-1.5 text-sm text-red-600">
+              {errors.name.message}
+            </p>
+          )}
+        </div>
+
+        {/* Email Field */}
+        <div>
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700 mb-1.5"
+          >
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            placeholder="your@email.com"
+            className={`
+              w-full h-12 rounded-lg border px-4 text-base
+              transition-all duration-200
+              placeholder:text-gray-400
+              focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400
+              ${errors.email ? 'border-red-500' : 'border-gray-200'}
+            `}
+            {...registerField('email')}
+          />
+          {errors.email && (
+            <p className="mt-1.5 text-sm text-red-600">
+              {errors.email.message}
+            </p>
+          )}
+        </div>
+
+        {/* Password Field */}
+        <div>
+          <label
+            htmlFor="password"
+            className="block text-sm font-medium text-gray-700 mb-1.5"
+          >
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            placeholder="••••••••"
+            className={`
+              w-full h-12 rounded-lg border px-4 text-base
+              transition-all duration-200
+              placeholder:text-gray-400
+              focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400
+              ${errors.password ? 'border-red-500' : 'border-gray-200'}
+            `}
+            {...registerField('password')}
+          />
+          <p className="mt-1.5 text-sm text-gray-500">
+            At least 8 characters with letters and numbers
+          </p>
+          {errors.password && (
+            <p className="mt-1 text-sm text-red-600">
+              {errors.password.message}
+            </p>
+          )}
         </div>
 
         {/* Submit Button */}
@@ -123,27 +149,21 @@ export default function RegisterPage() {
           size="lg"
           fullWidth
           loading={isPending}
+          className="mt-2"
         >
           {isPending ? 'Creating account...' : 'Create Account'}
         </Button>
       </form>
 
-      {/* Divider */}
-      <div className="my-6 flex items-center gap-4">
-        <div className="h-px flex-1 bg-stone-200" />
-        <span className="text-sm text-stone-500">or</span>
-        <div className="h-px flex-1 bg-stone-200" />
-      </div>
-
       {/* Login Link */}
-      <div className="text-center">
-        <p className="text-sm text-stone-600">
+      <div className="mt-8 text-center">
+        <p className="text-sm text-gray-500">
           Already have an account?{' '}
           <Link
             href="/login"
-            className="font-medium text-primary hover:text-primary/80 transition-colors"
+            className="font-semibold text-gray-900 hover:text-gray-700 transition-colors"
           >
-            Sign in instead
+            Sign in
           </Link>
         </p>
       </div>
