@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { PollType, PollStatus } from '../../config/database.types';
+import type { PollType, PollStatus } from '../../config/enums';
 
 // ============================================================================
 // ENUMS

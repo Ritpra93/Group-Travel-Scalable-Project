@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { ExpenseCategory, SplitType } from '../../config/database.types';
+import type { ExpenseCategory, SplitType } from '../../config/enums';
 
 // ============================================================================
 // ENUMS

@@ -5,6 +5,13 @@ generator client {
   provider = "prisma-client-js"
 }
 
+generator kysely {
+  provider     = "prisma-kysely"
+  output       = "../src/config"
+  fileName     = "database.types.ts"
+  enumFileName = "enums.ts"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")

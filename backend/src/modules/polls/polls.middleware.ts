@@ -1,4 +1,4 @@
-import type { GroupRole, PollStatus } from '../../config/database.types';
+import type { GroupRole, PollStatus } from '../../config/enums';
 
 /**
  * Role hierarchy for permission checks

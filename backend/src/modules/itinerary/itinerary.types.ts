@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { ItineraryItemType as DBItineraryItemType } from '../../config/database.types';
+import type { ItineraryItemType as DBItineraryItemType } from '../../config/enums';
 
 // ============================================================================
 // ENUMS
