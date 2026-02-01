@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import cookieParser from 'cookie-parser';
+import path from 'path';
 import { env } from './config/env';
 import { requestId, requestLogger } from './middleware/requestLogger.middleware';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.middleware';
@@ -19,6 +20,7 @@ import expenseRoutes, { tripExpensesRouter } from './modules/expenses/expenses.r
 import itineraryRoutes from './modules/itinerary/itinerary.routes';
 import usersRoutes from './modules/users/users.routes';
 import groupInterestsRoutes from './modules/users/users.group.routes';
+import uploadsRoutes from './modules/uploads/uploads.routes';
 
 /**
  * Create and configure Express application
@@ -88,6 +90,13 @@ export function createApp(): Application {
 
   // Request logging
   app.use(requestLogger);
+
+  // ============================================================================
+  // Static File Serving
+  // ============================================================================
+
+  // Serve uploaded files
+  app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
   // ============================================================================
   // API Routes
@@ -162,6 +171,9 @@ export function createApp(): Application {
   app.use('/api/v1/trips/:tripId/polls', tripPollsRouter);
   app.use('/api/v1/trips/:tripId/expenses', tripExpensesRouter);
   app.use('/api/v1/trips/:tripId/itinerary', itineraryRoutes);
+
+  // Uploads routes
+  app.use('/api/v1/uploads', uploadsRoutes);
 
   // ============================================================================
   // Error Handling
