@@ -10,12 +10,14 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { ArrowLeft } from 'lucide-react';
 import { useCreateGroup } from '@/lib/api/hooks/use-groups';
+import { useUploadImage } from '@/lib/api/hooks/use-uploads';
 import {
   createGroupSchema,
   type CreateGroupFormData,
 } from '@/lib/schemas/groups.schema';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ImageUpload } from '@/components/ui/image-upload';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 // ============================================================================
@@ -25,14 +27,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 export default function CreateGroupPage() {
   const router = useRouter();
   const { mutate: createGroup, isPending, error } = useCreateGroup();
+  const { upload: uploadImage } = useUploadImage();
 
   const {
     register,
     handleSubmit,
+    setValue,
+    watch,
     formState: { errors },
   } = useForm<CreateGroupFormData>({
     resolver: zodResolver(createGroupSchema) as any,
   });
+
+  const imageUrl = watch('imageUrl');
 
   const onSubmit = (data: CreateGroupFormData) => {
     createGroup(data);
@@ -106,15 +113,23 @@ export default function CreateGroupPage() {
               )}
             </div>
 
-            {/* Image URL */}
-            <Input
-              label="Image URL"
-              placeholder="https://images.unsplash.com/..."
-              type="url"
-              helperText="Optional: Add a cover image for your group"
-              error={errors.imageUrl?.message}
-              {...register('imageUrl')}
-            />
+            {/* Cover Image */}
+            <div className="space-y-2">
+              <label className="block text-sm font-medium text-dark">
+                Cover Image
+                <span className="text-stone-400 font-normal ml-1">
+                  (optional)
+                </span>
+              </label>
+              <ImageUpload
+                value={imageUrl}
+                onChange={(url) => setValue('imageUrl', url || '')}
+                onUpload={uploadImage}
+                placeholder="Click or drag an image to upload"
+                aspectRatio="16/9"
+                error={errors.imageUrl?.message}
+              />
+            </div>
 
             {/* Actions */}
             <div className="flex items-center gap-3 pt-4">

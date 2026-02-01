@@ -16,7 +16,20 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-      // Add these when file upload is implemented
+      {
+        protocol: 'https',
+        hostname: 'unsplash.com',
+        port: '',
+        pathname: '/**',
+      },
+      // Local uploads from backend
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '4000',
+        pathname: '/uploads/**',
+      },
+      // Add these when cloud storage is implemented
       // {
       //   protocol: 'https',
       //   hostname: '*.s3.amazonaws.com',

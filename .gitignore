@@ -80,6 +80,9 @@ dump.rdb
 backend/dist/
 backend/build/
 
+# Uploaded files (local development)
+backend/uploads/
+
 # Frontend build (already covered by .next/ above, but being explicit)
 frontend/.next/
 frontend/out/
@@ -113,4 +116,5 @@ frontend/docs/FRONTEND_DECISIONS.md
 backend/docs/BACKEND_DECISIONS.md
 backend/docs/TESTING_DECISIONS.md
 ARCHITECTURE_REVIEW.md
+INTERVIEW_TECHNICAL_GUIDE.md
 
