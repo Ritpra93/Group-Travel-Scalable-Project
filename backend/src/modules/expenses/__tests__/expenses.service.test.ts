@@ -6,7 +6,6 @@
 import { ExpensesService } from '../expenses.service';
 import { NotFoundError, ForbiddenError, ValidationError } from '../../../common/utils/errors';
 import { db } from '../../../config/kysely';
-import { calculateEqualSplits, calculatePercentageSplits } from '../expenses.utils';
 
 // Mock the database
 jest.mock('../../../config/kysely', () => ({
@@ -56,54 +55,8 @@ describe('ExpensesService', () => {
     jest.clearAllMocks();
   });
 
-  describe('Split Calculations (via utils)', () => {
-    // These tests verify the service uses the utility functions correctly.
-    // Comprehensive tests for the calculation logic are in expenses.utils.test.ts
-
-    describe('calculateEqualSplits', () => {
-      it('should split equally among 2 users', () => {
-        const result = calculateEqualSplits(100, ['user1', 'user2']);
-
-        expect(result).toHaveLength(2);
-        expect(result[0].amount).toBe(50);
-        expect(result[1].amount).toBe(50);
-      });
-
-      it('should split equally among 3 users with remainder', () => {
-        const result = calculateEqualSplits(100, ['user1', 'user2', 'user3']);
-
-        expect(result).toHaveLength(3);
-        expect(result[0].amount).toBe(33.33);
-        expect(result[1].amount).toBe(33.33);
-        expect(result[2].amount).toBe(33.34); // Last user gets remainder
-      });
-    });
-
-    describe('calculatePercentageSplits', () => {
-      it('should calculate percentage splits correctly', () => {
-        const splits = [
-          { userId: 'user1', percentage: 50 },
-          { userId: 'user2', percentage: 50 },
-        ];
-        const result = calculatePercentageSplits(100, splits);
-
-        expect(result).toHaveLength(2);
-        expect(result[0].amount).toBe(50);
-        expect(result[1].amount).toBe(50);
-      });
-
-      it('should handle uneven percentages', () => {
-        const splits = [
-          { userId: 'user1', percentage: 70 },
-          { userId: 'user2', percentage: 30 },
-        ];
-        const result = calculatePercentageSplits(100, splits);
-
-        expect(result[0].amount).toBe(70);
-        expect(result[1].amount).toBe(30);
-      });
-    });
-  });
+  // NOTE: Split calculation tests are in expenses.utils.test.ts
+  // This file focuses on service-level behavior: CRUD, permissions, validation
 
   describe('Settlement Algorithm', () => {
     it('should calculate optimal settlements', async () => {
