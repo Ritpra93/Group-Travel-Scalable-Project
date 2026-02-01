@@ -116,8 +116,8 @@ wanderlust/
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/yourusername/wanderlust.git
-   cd wanderlust
+   git clone https://github.com/yourusername/Group-Travel-Scalable-Project.git
+   cd Group-Travel-Scalable-Project
    ```
 
 2. **Start infrastructure services**
