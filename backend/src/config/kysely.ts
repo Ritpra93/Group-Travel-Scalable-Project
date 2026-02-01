@@ -10,12 +10,36 @@ import type { DB } from './database.types';
  * See docs/CRITICAL_CHANGES.md for migration path back to Prisma.
  */
 
+/**
+ * Parse DATABASE_URL to extract connection parameters
+ * Supports standard PostgreSQL connection string format:
+ * postgresql://user:password@host:port/database?options
+ */
+function parseDatabaseUrl(url: string): {
+  host: string;
+  port: number;
+  database: string;
+  user: string;
+  password: string;
+} {
+  const parsed = new URL(url);
+  return {
+    host: parsed.hostname,
+    port: parseInt(parsed.port, 10) || 5432,
+    database: parsed.pathname.slice(1), // Remove leading "/"
+    user: parsed.username,
+    password: decodeURIComponent(parsed.password),
+  };
+}
+
+const dbConfig = parseDatabaseUrl(env.DATABASE_URL);
+
 const pool = new Pool({
-  host: 'localhost',
-  port: 5433, // Docker PostgreSQL mapped to 5433 to avoid conflict with local PostgreSQL
-  database: 'group_travel',
-  user: 'postgres',
-  password: 'postgres',
+  host: dbConfig.host,
+  port: dbConfig.port,
+  database: dbConfig.database,
+  user: dbConfig.user,
+  password: dbConfig.password,
   max: 20,
 });
 

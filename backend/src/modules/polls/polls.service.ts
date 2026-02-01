@@ -13,7 +13,7 @@ import type {
   PollOptionWithVotes,
   VoteResponse,
 } from './polls.types';
-import type { GroupRole, ActivityType } from '../../config/database.types';
+import type { GroupRole, ActivityType } from '../../config/enums';
 
 /**
  * Service class for managing polls and voting

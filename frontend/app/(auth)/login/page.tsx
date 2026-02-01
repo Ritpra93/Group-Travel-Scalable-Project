@@ -11,7 +11,6 @@ import Link from 'next/link';
 import { useLogin } from '@/lib/api/hooks/use-auth';
 import { loginSchema, type LoginFormData } from '@/lib/schemas/auth.schema';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 
 export default function LoginPage() {
   const { mutate: login, isPending, error } = useLogin();
@@ -35,12 +34,12 @@ export default function LoginPage() {
   return (
     <div>
       {/* Header */}
-      <div className="mb-8 text-center">
-        <h1 className="mb-2 font-serif text-3xl font-bold text-dark">
-          Welcome Back
+      <div className="mb-8">
+        <h1 className="text-2xl font-semibold text-gray-900 mb-2">
+          Welcome back
         </h1>
-        <p className="text-stone-600">
-          Sign in to continue your adventure
+        <p className="text-gray-500">
+          Sign in to continue planning your adventures
         </p>
       </div>
 
@@ -55,32 +54,68 @@ export default function LoginPage() {
 
       {/* Login Form */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        <Input
-          label="Email"
-          type="email"
-          placeholder="your@email.com"
-          error={errors.email?.message}
-          {...register('email')}
-          required
-        />
-
-        <Input
-          label="Password"
-          type="password"
-          placeholder="••••••••"
-          error={errors.password?.message}
-          {...register('password')}
-          required
-        />
-
-        {/* Forgot Password Link */}
-        <div className="flex justify-end">
-          <Link
-            href="/forgot-password"
-            className="text-sm text-primary hover:text-primary/80 transition-colors"
+        {/* Email Field */}
+        <div>
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-gray-700 mb-1.5"
           >
-            Forgot password?
-          </Link>
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            placeholder="your@email.com"
+            className={`
+              w-full h-12 rounded-lg border px-4 text-base
+              transition-all duration-200
+              placeholder:text-gray-400
+              focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400
+              ${errors.email ? 'border-red-500' : 'border-gray-200'}
+            `}
+            {...register('email')}
+          />
+          {errors.email && (
+            <p className="mt-1.5 text-sm text-red-600">
+              {errors.email.message}
+            </p>
+          )}
+        </div>
+
+        {/* Password Field */}
+        <div>
+          <div className="flex items-center justify-between mb-1.5">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-gray-700"
+            >
+              Password
+            </label>
+            <Link
+              href="/forgot-password"
+              className="text-sm text-blue-600 hover:text-blue-500 transition-colors"
+            >
+              Forgot password?
+            </Link>
+          </div>
+          <input
+            id="password"
+            type="password"
+            placeholder="••••••••"
+            className={`
+              w-full h-12 rounded-lg border px-4 text-base
+              transition-all duration-200
+              placeholder:text-gray-400
+              focus:outline-none focus:ring-2 focus:ring-gray-900/10 focus:border-gray-400
+              ${errors.password ? 'border-red-500' : 'border-gray-200'}
+            `}
+            {...register('password')}
+          />
+          {errors.password && (
+            <p className="mt-1.5 text-sm text-red-600">
+              {errors.password.message}
+            </p>
+          )}
         </div>
 
         {/* Submit Button */}
@@ -90,27 +125,21 @@ export default function LoginPage() {
           size="lg"
           fullWidth
           loading={isPending}
+          className="mt-2"
         >
           {isPending ? 'Signing in...' : 'Sign In'}
         </Button>
       </form>
 
-      {/* Divider */}
-      <div className="my-6 flex items-center gap-4">
-        <div className="h-px flex-1 bg-stone-200" />
-        <span className="text-sm text-stone-500">or</span>
-        <div className="h-px flex-1 bg-stone-200" />
-      </div>
-
       {/* Register Link */}
-      <div className="text-center">
-        <p className="text-sm text-stone-600">
+      <div className="mt-8 text-center">
+        <p className="text-sm text-gray-500">
           Don't have an account?{' '}
           <Link
             href="/register"
-            className="font-medium text-primary hover:text-primary/80 transition-colors"
+            className="font-semibold text-gray-900 hover:text-gray-700 transition-colors"
           >
-            Create one now
+            Create account
           </Link>
         </p>
       </div>

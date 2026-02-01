@@ -8,7 +8,7 @@ import type {
   PaginatedItineraryResponse,
   Coordinates,
 } from './itinerary.types';
-import type { GroupRole, ActivityType } from '../../config/database.types';
+import type { GroupRole, ActivityType } from '../../config/enums';
 import {
   NotFoundError,
   ForbiddenError,

@@ -18,7 +18,7 @@ import type {
   UserBalanceResponse,
   PaginatedExpensesResponse,
 } from './expenses.types';
-import type { GroupRole, ActivityType } from '../../config/database.types';
+import type { GroupRole, ActivityType } from '../../config/enums';
 
 /**
  * Service class for handling expense business logic
