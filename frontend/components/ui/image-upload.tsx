@@ -104,13 +104,13 @@ export function ImageUpload({
       try {
         const url = await onUpload(file);
         onChange(url);
-        setPreviewUrl(null); // Clear preview after successful upload
+        // Keep preview until server image loads (handled by onLoad below)
       } catch (err) {
         setUploadError(err instanceof Error ? err.message : 'Upload failed');
         setPreviewUrl(null);
+        URL.revokeObjectURL(objectUrl);
       } finally {
         setIsUploading(false);
-        URL.revokeObjectURL(objectUrl);
       }
     },
     [onUpload, onChange, maxSizeMB]

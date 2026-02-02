@@ -52,6 +52,7 @@ export function FeaturedTripHero({ trip, weather }: FeaturedTripHeroProps) {
         fill
         className="object-cover opacity-90 transition-transform duration-1000 group-hover:scale-105"
         priority
+        unoptimized={(trip.imageUrl || '').includes('localhost')}
       />
 
       {/* Bottom gradient overlay - Extended for better text visibility */}

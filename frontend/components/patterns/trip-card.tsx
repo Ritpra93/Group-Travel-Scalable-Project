@@ -64,6 +64,7 @@ export function TripCard({ trip }: TripCardProps) {
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 50vw"
+              unoptimized={trip.imageUrl.includes('localhost')}
             />
           ) : (
             <div className="absolute inset-0 bg-zinc-100 flex items-center justify-center">

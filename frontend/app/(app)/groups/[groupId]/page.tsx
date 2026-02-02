@@ -115,6 +115,7 @@ export default function GroupDetailPage({
             sizes="100vw"
             priority
             quality={90}
+            unoptimized={group.imageUrl.includes('localhost')}
           />
         ) : (
           <div className="absolute inset-0 bg-stone-100 flex items-center justify-center">
