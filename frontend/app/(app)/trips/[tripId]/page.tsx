@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { useTrip } from '@/lib/api/hooks/use-trips';
 import { useTripExpenses, useTripBalances } from '@/lib/api/hooks/use-expenses';
+import { usePolls } from '@/lib/api/hooks/use-polls';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useTripSocket } from '@/lib/socket';
 import { ExpenseCategoryIcon, getCategoryLabel } from '@/components/patterns/expense-category-icon';
@@ -141,15 +142,21 @@ export default function TripDetailPage({
   const { data: expensesData } = useTripExpenses(tripId, { limit: 3 });
   const { data: balances } = useTripBalances(tripId);
 
+  // Fetch active polls
+  const { data: pollsData } = usePolls(tripId, { status: 'ACTIVE', limit: 1 });
+  const activePoll = pollsData?.data?.[0];
+
   if (isLoading) return <div className="h-screen flex items-center justify-center text-zinc-400">Loading Aura...</div>;
   if (error || !trip) return <div>Trip not found</div>;
 
   const recentExpenses = expensesData?.data || [];
-  const totalExpenses = recentExpenses.reduce((sum, e) => sum + parseFloat(e.amount), 0);
 
   // Calculate user's balance
   const userBalance = balances?.find((b) => b.userId === user?.id);
   const userBalanceAmount = userBalance ? parseFloat(userBalance.balance) : 0;
+
+  // Calculate total votes for active poll
+  const totalVotes = activePoll?.options?.reduce((sum, opt) => sum + (opt.voteCount || 0), 0) || 0;
 
   // Derived State
   const startDate = new Date(trip.startDate).toLocaleDateString('en-US', {
@@ -303,41 +310,70 @@ export default function TripDetailPage({
 
             {/* Active Poll Widget */}
             <div>
-              <SectionHeader title="Active Poll" />
+              <SectionHeader
+                title="Active Poll"
+                action={
+                  <Link
+                    href={`/trips/${tripId}/polls`}
+                    className="text-xs text-zinc-400 hover:text-zinc-600 flex items-center gap-1"
+                  >
+                    View all <ArrowRight className="w-3 h-3" />
+                  </Link>
+                }
+              />
               <Card>
                 <CardContent className="p-6">
-                  <div className="flex justify-between items-start mb-4">
-                    <h4 className="text-sm font-medium text-zinc-900">Dinner in Reykjavík?</h4>
-                    <span className="text-[10px] font-medium text-zinc-400 bg-zinc-100 px-2 py-1 rounded-full">Ends in 2h</span>
-                  </div>
+                  {activePoll ? (
+                    <>
+                      <div className="flex justify-between items-start mb-4">
+                        <h4 className="text-sm font-medium text-zinc-900">{activePoll.title}</h4>
+                        {activePoll.closesAt && (
+                          <span className="text-[10px] font-medium text-zinc-400 bg-zinc-100 px-2 py-1 rounded-full">
+                            {new Date(activePoll.closesAt) > new Date()
+                              ? `Ends ${new Date(activePoll.closesAt).toLocaleDateString()}`
+                              : 'Closing soon'}
+                          </span>
+                        )}
+                      </div>
 
-                  <div className="space-y-4 mb-6">
-                    <div>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="font-medium text-zinc-700">Grillmarket</span>
-                        <span className="text-zinc-400">3 votes</span>
+                      <div className="space-y-4 mb-6">
+                        {activePoll.options?.slice(0, 3).map((option) => {
+                          const percentage = totalVotes > 0 ? ((option.voteCount || 0) / totalVotes) * 100 : 0;
+                          return (
+                            <div key={option.id}>
+                              <div className="flex justify-between text-xs mb-1">
+                                <span className="font-medium text-zinc-700">{option.label}</span>
+                                <span className="text-zinc-400">{option.voteCount || 0} votes</span>
+                              </div>
+                              <div className="w-full bg-zinc-100 h-1.5 rounded-full overflow-hidden">
+                                <div
+                                  className="bg-zinc-800 h-full transition-all duration-300"
+                                  style={{ width: `${percentage}%` }}
+                                />
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {activePoll.options && activePoll.options.length > 3 && (
+                          <p className="text-xs text-zinc-400">+{activePoll.options.length - 3} more options</p>
+                        )}
                       </div>
-                      <div className="w-full bg-zinc-100 h-1.5 rounded-full overflow-hidden">
-                        <div className="bg-zinc-800 h-full w-[75%]" />
-                      </div>
-                      <div className="flex -space-x-1 mt-2">
-                        {['A', 'B', 'C'].map(u => (
-                          <div key={u} className="w-5 h-5 rounded-full bg-zinc-200 border border-white" />
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex justify-between text-xs mb-1">
-                        <span className="font-medium text-zinc-700">Fish Company</span>
-                        <span className="text-zinc-400">1 vote</span>
-                      </div>
-                      <div className="w-full bg-zinc-100 h-1.5 rounded-full overflow-hidden">
-                        <div className="bg-zinc-300 h-full w-[25%]" />
-                      </div>
-                    </div>
-                  </div>
 
-                  <Button variant="outline" className="w-full text-xs h-9">Cast Vote</Button>
+                      <Link href={`/trips/${tripId}/polls`}>
+                        <Button variant="outline" className="w-full text-xs h-9">View & Vote</Button>
+                      </Link>
+                    </>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-sm text-zinc-400 mb-4">No active polls</p>
+                      <Link href={`/trips/${tripId}/polls/new`}>
+                        <Button variant="outline" className="text-xs h-9">
+                          <Plus className="w-3 h-3 mr-1" />
+                          Create Poll
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
