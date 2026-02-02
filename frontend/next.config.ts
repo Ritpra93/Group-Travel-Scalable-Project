@@ -39,6 +39,8 @@ const nextConfig: NextConfig = {
       //   hostname: 'res.cloudinary.com',
       // },
     ],
+    // Add quality 90 to allowed values (used by some images)
+    qualities: [75, 90],
   },
 
   // Enable strict mode

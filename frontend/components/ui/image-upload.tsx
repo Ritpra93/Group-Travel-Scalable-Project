@@ -61,6 +61,7 @@ export function ImageUpload({
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [imageError, setImageError] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   /**
@@ -92,6 +93,7 @@ export function ImageUpload({
       }
 
       setUploadError(null);
+      setImageError(false);
 
       // Create preview
       const objectUrl = URL.createObjectURL(file);
@@ -176,9 +178,11 @@ export function ImageUpload({
     onChange(undefined);
     setPreviewUrl(null);
     setUploadError(null);
+    setImageError(false);
   };
 
-  const displayUrl = previewUrl || value;
+  // Only show URL if it's a valid non-empty string
+  const displayUrl = previewUrl || (value && value.trim() !== '' ? value : null);
   const displayError = error || uploadError;
 
   return (
@@ -211,13 +215,17 @@ export function ImageUpload({
         />
 
         {/* Preview Image */}
-        {displayUrl && (
+        {displayUrl && !imageError && (
           <Image
             src={displayUrl}
             alt="Preview"
             fill
             className="object-cover"
-            unoptimized={displayUrl.startsWith('blob:')}
+            unoptimized={displayUrl.startsWith('blob:') || displayUrl.includes('localhost')}
+            onError={() => {
+              setImageError(true);
+              setUploadError('Failed to load image');
+            }}
           />
         )}
 

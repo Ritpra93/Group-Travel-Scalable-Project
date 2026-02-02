@@ -40,7 +40,8 @@ export const uploadImageQuerySchema = z.object({
   // Optional resize parameters
   maxWidth: z.coerce.number().positive().max(2000).optional(),
   maxHeight: z.coerce.number().positive().max(2000).optional(),
-  quality: z.coerce.number().min(1).max(100).optional().default(80),
+  quality: z.coerce.number().min(1).max(100).optional(),
 });
 
-export type UploadImageQuery = z.infer<typeof uploadImageQuerySchema>;
+// Use input type to make all fields optional (before defaults are applied)
+export type UploadImageQuery = z.input<typeof uploadImageQuerySchema>;

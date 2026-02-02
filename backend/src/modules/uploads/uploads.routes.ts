@@ -6,8 +6,8 @@
 import { Router } from 'express';
 import multer from 'multer';
 import { authenticate } from '../../middleware/auth.middleware';
+import { asyncHandler } from '../../middleware/asyncHandler.middleware';
 import { uploadsController } from './uploads.controller';
-import { asyncHandler } from '../../common/utils/asyncHandler';
 import { MAX_FILE_SIZE } from './uploads.types';
 
 // ============================================================================
