@@ -95,8 +95,12 @@ export function createApp(): Application {
   // Static File Serving
   // ============================================================================
 
-  // Serve uploaded files
-  app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
+  // Serve uploaded files with CORS headers for cross-origin access
+  app.use('/uploads', (req, res, next) => {
+    // Allow cross-origin access to uploaded files
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    next();
+  }, express.static(path.join(__dirname, '../uploads')));
 
   // ============================================================================
   // API Routes

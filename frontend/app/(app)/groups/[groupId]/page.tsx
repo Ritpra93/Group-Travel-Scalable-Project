@@ -22,6 +22,7 @@ import { useAuthStore } from '@/lib/stores/auth-store';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { GroupInterestsPanel } from '@/components/patterns/group-interests-panel';
+import { InviteMemberModal } from '@/components/patterns/invite-member-modal';
 import { GroupRole } from '@/types';
 
 // ============================================================================
@@ -37,6 +38,7 @@ export default function GroupDetailPage({
   const router = useRouter();
   const { user } = useAuthStore();
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
 
   // Fetch group and members
   const { data: group, isLoading, error } = useGroup(groupId);
@@ -202,9 +204,14 @@ export default function GroupDetailPage({
               </p>
             </div>
             {isAdmin && (
-              <Button variant="primary" size="lg" className="gap-2">
+              <Button
+                variant="primary"
+                size="lg"
+                className="gap-2"
+                onClick={() => setShowInviteModal(true)}
+              >
                 <UserPlus className="h-5 w-5" />
-                Add Member
+                Invite Member
               </Button>
             )}
           </div>
@@ -311,6 +318,14 @@ export default function GroupDetailPage({
           </div>
         </div>
       </div>
+
+      {/* Invite Member Modal */}
+      <InviteMemberModal
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        groupId={groupId}
+        groupName={group.name}
+      />
     </div>
   );
 }
