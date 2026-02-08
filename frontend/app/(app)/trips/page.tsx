@@ -25,6 +25,7 @@ const statusFilters = [
   { label: 'Upcoming', value: TripStatus.UPCOMING },
   { label: 'Ongoing', value: TripStatus.ONGOING },
   { label: 'Completed', value: TripStatus.COMPLETED },
+  { label: 'Cancelled', value: TripStatus.CANCELLED },
 ];
 
 export default function TripsPage() {
