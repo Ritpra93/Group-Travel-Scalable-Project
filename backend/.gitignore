@@ -30,3 +30,5 @@ prisma/dev.db-journal
 # Temporary files
 tmp/
 temp/
+
+
