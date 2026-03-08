@@ -1,4 +1,4 @@
-import { User } from '@prisma/client';
+import { User } from '../../config/database.types';
 
 /**
  * Extend Express Request type to include authenticated user

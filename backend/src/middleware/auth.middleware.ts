@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyAccessToken } from '../common/utils/jwt';
 import { UnauthorizedError } from '../common/utils/errors';
-import { prisma } from '../config/database';
+import { db } from '../config/kysely';
 
 /**
  * Authentication middleware
@@ -28,9 +28,11 @@ export async function authenticate(
     const payload = verifyAccessToken(token);
 
     // Fetch user from database
-    const user = await prisma.user.findUnique({
-      where: { id: payload.userId },
-    });
+    const user = await db
+      .selectFrom('users')
+      .selectAll()
+      .where('id', '=', payload.userId)
+      .executeTakeFirst();
 
     if (!user) {
       throw new UnauthorizedError('User not found');
@@ -69,9 +71,11 @@ export async function optionalAuthenticate(
     try {
       const payload = verifyAccessToken(token);
 
-      const user = await prisma.user.findUnique({
-        where: { id: payload.userId },
-      });
+      const user = await db
+        .selectFrom('users')
+        .selectAll()
+        .where('id', '=', payload.userId)
+        .executeTakeFirst();
 
       if (user) {
         req.user = user;

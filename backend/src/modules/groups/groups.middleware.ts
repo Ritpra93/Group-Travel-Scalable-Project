@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { GroupRole } from '@prisma/client';
-import { prisma } from '../../config/database';
+import { db } from '../../config/kysely';
+import type { GroupRole } from '../../config/database.types';
 import { ForbiddenError, NotFoundError, UnauthorizedError } from '../../common/utils/errors';
 
 /**
@@ -75,29 +75,23 @@ export async function requireGroupMembership(
     }
 
     // Find group
-    const group = await prisma.group.findUnique({
-      where: { id: groupId },
-      select: {
-        id: true,
-        name: true,
-        creatorId: true,
-        isPrivate: true,
-      },
-    });
+    const group = await db
+      .selectFrom('groups')
+      .select(['id', 'name', 'creatorId', 'isPrivate'])
+      .where('id', '=', groupId)
+      .executeTakeFirst();
 
     if (!group) {
       throw new NotFoundError('Group not found');
     }
 
     // Find user's membership
-    const membership = await prisma.groupMember.findUnique({
-      where: {
-        groupId_userId: {
-          groupId: group.id,
-          userId: req.user.id,
-        },
-      },
-    });
+    const membership = await db
+      .selectFrom('group_members')
+      .select(['id', 'role', 'userId', 'groupId'])
+      .where('groupId', '=', group.id)
+      .where('userId', '=', req.user.id)
+      .executeTakeFirst();
 
     if (!membership) {
       throw new ForbiddenError('You are not a member of this group');
@@ -181,7 +175,7 @@ export async function requireGroupOwner(
       throw new ForbiddenError('Group membership not verified');
     }
 
-    if (req.groupMember.role !== GroupRole.OWNER) {
+    if (req.groupMember.role !== 'OWNER') {
       throw new ForbiddenError('This action requires OWNER role');
     }
 
@@ -198,7 +192,7 @@ export async function requireGroupOwner(
  * Convenience middleware for common permission level.
  * Must be used after `requireGroupMembership`.
  */
-export const requireGroupAdmin = requireGroupRole(GroupRole.ADMIN);
+export const requireGroupAdmin = requireGroupRole('ADMIN');
 
 /**
  * Middleware: Require Group Member or Above
@@ -207,7 +201,7 @@ export const requireGroupAdmin = requireGroupRole(GroupRole.ADMIN);
  * Useful for actions like creating trips, expenses, etc.
  * Must be used after `requireGroupMembership`.
  */
-export const requireGroupMember = requireGroupRole(GroupRole.MEMBER);
+export const requireGroupMember = requireGroupRole('MEMBER');
 
 /**
  * Middleware: Optional Group Membership
@@ -238,60 +232,35 @@ export async function optionalGroupMembership(
     }
 
     // Find group
-    const group = await prisma.group.findUnique({
-      where: { id: groupId },
-      select: {
-        id: true,
-        name: true,
-        creatorId: true,
-        isPrivate: true,
-      },
-    });
+    const group = await db
+      .selectFrom('groups')
+      .select(['id', 'name', 'creatorId', 'isPrivate'])
+      .where('id', '=', groupId)
+      .executeTakeFirst();
 
     if (!group) {
       throw new NotFoundError('Group not found');
     }
 
-    // For private groups, membership is required
-    if (group.isPrivate) {
-      const membership = await prisma.groupMember.findUnique({
-        where: {
-          groupId_userId: {
-            groupId: group.id,
-            userId: req.user.id,
-          },
-        },
-      });
+    // Find membership (required for private groups, optional for public)
+    const membership = await db
+      .selectFrom('group_members')
+      .select(['id', 'role', 'userId', 'groupId'])
+      .where('groupId', '=', group.id)
+      .where('userId', '=', req.user.id)
+      .executeTakeFirst();
 
-      if (!membership) {
-        throw new ForbiddenError('This is a private group. Membership required.');
-      }
+    if (group.isPrivate && !membership) {
+      throw new ForbiddenError('This is a private group. Membership required.');
+    }
 
+    if (membership) {
       req.groupMember = {
         id: membership.id,
         role: membership.role,
         userId: membership.userId,
         groupId: membership.groupId,
       };
-    } else {
-      // For public groups, try to find membership but don't require it
-      const membership = await prisma.groupMember.findUnique({
-        where: {
-          groupId_userId: {
-            groupId: group.id,
-            userId: req.user.id,
-          },
-        },
-      });
-
-      if (membership) {
-        req.groupMember = {
-          id: membership.id,
-          role: membership.role,
-          userId: membership.userId,
-          groupId: membership.groupId,
-        };
-      }
     }
 
     req.group = group;
@@ -322,25 +291,25 @@ export function canModifyMemberRole(
   targetNewRole: GroupRole
 ): boolean {
   // Cannot change OWNER role
-  if (targetCurrentRole === GroupRole.OWNER) {
+  if (targetCurrentRole === 'OWNER') {
     return false;
   }
 
   // Cannot promote to OWNER
-  if (targetNewRole === GroupRole.OWNER) {
+  if (targetNewRole === 'OWNER') {
     return false;
   }
 
   // OWNER can change any non-OWNER role
-  if (currentUserRole === GroupRole.OWNER) {
+  if (currentUserRole === 'OWNER') {
     return true;
   }
 
   // ADMIN can only change MEMBER and VIEWER roles
-  if (currentUserRole === GroupRole.ADMIN) {
+  if (currentUserRole === 'ADMIN') {
     return (
-      targetCurrentRole !== GroupRole.ADMIN &&
-      targetNewRole !== GroupRole.ADMIN
+      targetCurrentRole !== 'ADMIN' &&
+      targetNewRole !== 'ADMIN'
     );
   }
 
@@ -370,7 +339,7 @@ export function canRemoveMember(
   targetRole: GroupRole
 ): boolean {
   // Cannot remove OWNER
-  if (targetRole === GroupRole.OWNER) {
+  if (targetRole === 'OWNER') {
     return false;
   }
 
@@ -380,13 +349,13 @@ export function canRemoveMember(
   }
 
   // OWNER can remove anyone except OWNER
-  if (currentUserRole === GroupRole.OWNER) {
+  if (currentUserRole === 'OWNER') {
     return true;
   }
 
   // ADMIN can remove MEMBER and VIEWER
-  if (currentUserRole === GroupRole.ADMIN) {
-    return targetRole === GroupRole.MEMBER || targetRole === GroupRole.VIEWER;
+  if (currentUserRole === 'ADMIN') {
+    return targetRole === 'MEMBER' || targetRole === 'VIEWER';
   }
 
   // Other roles cannot remove members

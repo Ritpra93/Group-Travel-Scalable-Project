@@ -117,5 +117,7 @@ backend/docs/BACKEND_DECISIONS.md
 backend/docs/TESTING_DECISIONS.md
 ARCHITECTURE_REVIEW.md
 INTERVIEW_TECHNICAL_GUIDE.md
-
-CLAUDE.md
+CLAUDE.md/
+# Fix changelogs and guides (local trail only)
+CHANGELOG-fixes.md
+ARCHITECTURE-GUIDE.md
