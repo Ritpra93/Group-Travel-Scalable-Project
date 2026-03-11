@@ -11,7 +11,6 @@ import { ValidationError } from '../../common/utils/errors';
 import type { ApiResponse } from '../../common/types/api';
 import type {
   PollResponse,
-  PaginatedPollsResponse,
   PollResultsResponse,
   VoteResponse,
 } from './polls.types';
@@ -78,7 +77,7 @@ export class PollsController {
    */
   async listPolls(
     req: Request,
-    res: Response<ApiResponse<PollResponse[], PaginatedPollsResponse['pagination']>>,
+    res: Response<ApiResponse<PollResponse[]>>,
     next: NextFunction
   ): Promise<void> {
     try {

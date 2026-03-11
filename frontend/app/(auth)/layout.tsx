@@ -13,7 +13,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 // Hero content configuration for each auth page
-const heroContent = {
+const heroContent: Record<string, { image: string; headline: string; subtext: string }> = {
   login: {
     image: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2073',
     headline: 'Plan Your Next Adventure Together',
@@ -24,12 +24,22 @@ const heroContent = {
     headline: 'Start Your Journey',
     subtext: 'Join thousands of travelers planning their dream trips together',
   },
+  'forgot-password': {
+    image: 'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2070',
+    headline: 'Forgot Your Password?',
+    subtext: 'No worries — we\'ll help you get back to planning your next trip',
+  },
+  'reset-password': {
+    image: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?q=80&w=2021',
+    headline: 'Set a New Password',
+    subtext: 'Choose a strong password to keep your travel plans secure',
+  },
 };
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const isLogin = pathname === '/login';
-  const content = isLogin ? heroContent.login : heroContent.register;
+  const segment = pathname.split('/').pop() || 'login';
+  const content = heroContent[segment] || heroContent.login;
 
   return (
     <div className="min-h-screen flex">

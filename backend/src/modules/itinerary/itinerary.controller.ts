@@ -9,7 +9,6 @@ import { ValidationError } from '../../common/utils/errors';
 import type { ApiResponse } from '../../common/types/api';
 import type {
   ItineraryItemResponse,
-  PaginatedItineraryResponse,
 } from './itinerary.types';
 
 /**
@@ -79,7 +78,7 @@ export class ItineraryController {
    */
   async listItems(
     req: Request,
-    res: Response<ApiResponse<ItineraryItemResponse[], PaginatedItineraryResponse['pagination']>>,
+    res: Response<ApiResponse<ItineraryItemResponse[]>>,
     next: NextFunction
   ): Promise<void> {
     try {

@@ -71,7 +71,7 @@ class UploadsService {
    */
   async processAndSaveImage(
     file: Express.Multer.File,
-    options: UploadImageQuery = {}
+    options: Partial<UploadImageQuery> = {}
   ): Promise<UploadResponse> {
     await this.ensureUploadsDir();
 

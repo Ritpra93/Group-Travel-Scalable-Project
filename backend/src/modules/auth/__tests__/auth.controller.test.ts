@@ -56,6 +56,8 @@ describe('AuthController', () => {
     updatedAt: new Date('2024-01-01'),
     lastLoginAt: null,
     emailVerifiedAt: null,
+    passwordResetToken: null,
+    passwordResetExpAt: null,
   };
 
   const mockTokens = {
@@ -393,7 +395,7 @@ describe('AuthController', () => {
         ...mockUser,
         passwordHash: 'hashed-password-should-not-be-returned',
       };
-      const req = createMockReq({ user: userWithPassword });
+      const req = createMockReq({ user: userWithPassword as any });
       const res = createMockRes();
 
       await controller.me(req, res, mockNext);

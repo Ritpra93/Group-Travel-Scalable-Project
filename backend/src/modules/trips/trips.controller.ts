@@ -8,7 +8,7 @@ import {
 } from './trips.types';
 import { ValidationError } from '../../common/utils/errors';
 import type { ApiResponse } from '../../common/types/api';
-import type { TripResponse, PaginatedTripsResponse } from './trips.types';
+import type { TripResponse } from './trips.types';
 
 /**
  * Trips Controller
@@ -74,7 +74,7 @@ export class TripsController {
    */
   async listTrips(
     req: Request,
-    res: Response<ApiResponse<TripResponse[], PaginatedTripsResponse['pagination']>>,
+    res: Response<ApiResponse<TripResponse[]>>,
     next: NextFunction
   ): Promise<void> {
     try {

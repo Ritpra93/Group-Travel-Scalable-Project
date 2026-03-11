@@ -33,6 +33,8 @@ export const mockUser = {
   updatedAt: new Date('2024-01-01'),
   lastLoginAt: new Date('2024-01-15'),
   emailVerifiedAt: new Date('2024-01-01'),
+  passwordResetToken: null,
+  passwordResetExpAt: null,
 };
 
 export const mockUser2 = {

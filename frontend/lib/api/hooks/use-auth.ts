@@ -140,6 +140,35 @@ export function useLogout(): UseMutationResult<void, ApiError, void> {
 // useRefreshToken - Manually refresh access token
 // ============================================================================
 
+// ============================================================================
+// useForgotPassword - Request password reset
+// ============================================================================
+
+export function useForgotPassword(): UseMutationResult<{ message: string }, ApiError, { email: string }> {
+  return useMutation<{ message: string }, ApiError, { email: string }>({
+    mutationFn: authService.forgotPassword,
+  });
+}
+
+// ============================================================================
+// useResetPassword - Reset password with token
+// ============================================================================
+
+export function useResetPassword(): UseMutationResult<{ message: string }, ApiError, { token: string; password: string }> {
+  const router = useRouter();
+
+  return useMutation<{ message: string }, ApiError, { token: string; password: string }>({
+    mutationFn: authService.resetPassword,
+    onSuccess: () => {
+      setTimeout(() => router.push('/login'), 2000);
+    },
+  });
+}
+
+// ============================================================================
+// useRefreshToken - Manually refresh access token
+// ============================================================================
+
 export function useRefreshToken(): UseMutationResult<AuthResponse, ApiError, void> {
   const { setTokens } = useAuthStore();
 

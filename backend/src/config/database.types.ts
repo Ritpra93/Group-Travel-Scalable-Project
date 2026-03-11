@@ -146,6 +146,8 @@ export type User = {
     updatedAt: Timestamp;
     lastLoginAt: Timestamp | null;
     emailVerifiedAt: Timestamp | null;
+    passwordResetToken: string | null;
+    passwordResetExpAt: Timestamp | null;
 };
 export type Vote = {
     id: string;

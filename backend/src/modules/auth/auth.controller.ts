@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { authService } from './auth.service';
-import { registerSchema, loginSchema } from './auth.types';
+import { registerSchema, loginSchema, forgotPasswordSchema, resetPasswordSchema } from './auth.types';
 import { ValidationError, UnauthorizedError } from '../../common/utils/errors';
 import { env } from '../../config/env';
 import type { ApiResponse } from '../../common/types/api';
@@ -174,6 +174,61 @@ export class AuthController {
       });
     } catch (error) {
       next(error);
+    }
+  }
+  /**
+   * Request password reset
+   * POST /api/v1/auth/forgot-password
+   */
+  async forgotPassword(
+    req: Request,
+    res: Response<ApiResponse<{ message: string }>>,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const validatedData = forgotPasswordSchema.parse(req.body);
+      await authService.forgotPassword(validatedData);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          message: 'If an account with that email exists, a password reset link has been sent.',
+        },
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === 'ZodError') {
+        next(new ValidationError('Invalid input', error));
+      } else {
+        next(error);
+      }
+    }
+  }
+
+  /**
+   * Reset password with token
+   * POST /api/v1/auth/reset-password
+   */
+  async resetPassword(
+    req: Request,
+    res: Response<ApiResponse<{ message: string }>>,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const validatedData = resetPasswordSchema.parse(req.body);
+      await authService.resetPassword(validatedData);
+
+      res.status(200).json({
+        success: true,
+        data: {
+          message: 'Password has been reset successfully.',
+        },
+      });
+    } catch (error) {
+      if (error instanceof Error && error.name === 'ZodError') {
+        next(new ValidationError('Invalid input', error));
+      } else {
+        next(error);
+      }
     }
   }
 }

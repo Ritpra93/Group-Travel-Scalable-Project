@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { db } from '../../config/kysely';
-import type { GroupRole } from '../../config/database.types';
+import type { GroupRole } from '../../config/enums';
 import { ForbiddenError, NotFoundError, UnauthorizedError } from '../../common/utils/errors';
 
 /**

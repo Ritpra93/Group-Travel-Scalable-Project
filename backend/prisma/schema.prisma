@@ -39,6 +39,10 @@ model User {
   lastLoginAt       DateTime?
   emailVerifiedAt   DateTime?
 
+  // Password Reset
+  passwordResetToken    String?   @unique
+  passwordResetExpAt    DateTime?
+
   // Relations
   memberships       GroupMember[]
   createdGroups     Group[]           @relation("GroupCreator")

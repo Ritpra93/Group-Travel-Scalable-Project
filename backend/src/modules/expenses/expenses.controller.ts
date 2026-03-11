@@ -10,7 +10,6 @@ import { ValidationError } from '../../common/utils/errors';
 import type { ApiResponse } from '../../common/types/api';
 import type {
   ExpenseResponse,
-  PaginatedExpensesResponse,
   ExpenseSplitData,
   UserBalanceResponse,
   SettlementResponse,
@@ -78,7 +77,7 @@ export class ExpensesController {
    */
   async listExpenses(
     req: Request,
-    res: Response<ApiResponse<ExpenseResponse[], PaginatedExpensesResponse['pagination']>>,
+    res: Response<ApiResponse<ExpenseResponse[]>>,
     next: NextFunction
   ): Promise<void> {
     try {

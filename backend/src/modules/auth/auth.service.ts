@@ -1,10 +1,12 @@
+import crypto from 'crypto';
 import { db } from '../../config/kysely';
 import { hashPassword, comparePassword, validatePasswordStrength } from '../../common/utils/password';
 import { generateTokenPair, verifyRefreshToken } from '../../common/utils/jwt';
-import { ConflictError, UnauthorizedError, ValidationError } from '../../common/utils/errors';
+import { ConflictError, UnauthorizedError, ValidationError, BadRequestError } from '../../common/utils/errors';
 import { logAuth, logEvent } from '../../common/utils/logger';
 import { cacheSet } from '../../config/redis';
-import type { RegisterInput, LoginInput, RefreshTokenInput, AuthResponse } from './auth.types';
+import { env } from '../../config/env';
+import type { RegisterInput, LoginInput, RefreshTokenInput, AuthResponse, ForgotPasswordInput, ResetPasswordInput } from './auth.types';
 import { createId } from '@paralleldrive/cuid2';
 
 /**
@@ -265,6 +267,93 @@ export class AuthService {
     const { cacheGet } = await import('../../config/redis');
     const blacklisted = await cacheGet<boolean>(`blacklist:${token}`);
     return blacklisted === true;
+  }
+
+  /**
+   * Request a password reset
+   *
+   * Generates a reset token and logs the reset URL to console.
+   * Always returns silently to prevent email enumeration.
+   */
+  async forgotPassword(input: ForgotPasswordInput): Promise<void> {
+    const user = await db
+      .selectFrom('users')
+      .select(['id', 'email'])
+      .where('email', '=', input.email.toLowerCase())
+      .executeTakeFirst();
+
+    if (!user) {
+      // Return silently to prevent email enumeration
+      return;
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await db
+      .updateTable('users')
+      .set({
+        passwordResetToken: token,
+        passwordResetExpAt: expiresAt,
+        updatedAt: new Date(),
+      })
+      .where('id', '=', user.id)
+      .execute();
+
+    const resetUrl = `${env.FRONTEND_URL}/reset-password?token=${token}`;
+    console.log(`[DEV] Password reset link for ${user.email}: ${resetUrl}`);
+
+    logEvent('password_reset_requested', { userId: user.id });
+  }
+
+  /**
+   * Reset password using a valid reset token
+   *
+   * @throws BadRequestError if token is invalid or expired
+   * @throws ValidationError if password doesn't meet requirements
+   */
+  async resetPassword(input: ResetPasswordInput): Promise<void> {
+    const user = await db
+      .selectFrom('users')
+      .selectAll()
+      .where('passwordResetToken', '=', input.token)
+      .executeTakeFirst();
+
+    if (!user) {
+      throw new BadRequestError('Invalid or expired reset token');
+    }
+
+    if (!user.passwordResetExpAt || new Date(user.passwordResetExpAt as unknown as string) < new Date()) {
+      throw new BadRequestError('Invalid or expired reset token');
+    }
+
+    const passwordValidation = validatePasswordStrength(input.password);
+    if (!passwordValidation.valid) {
+      throw new ValidationError('Password does not meet requirements', {
+        errors: passwordValidation.errors,
+      });
+    }
+
+    const passwordHash = await hashPassword(input.password);
+
+    await db
+      .updateTable('users')
+      .set({
+        passwordHash,
+        passwordResetToken: null,
+        passwordResetExpAt: null,
+        updatedAt: new Date(),
+      })
+      .where('id', '=', user.id)
+      .execute();
+
+    // Invalidate all existing sessions for security
+    await db
+      .deleteFrom('sessions')
+      .where('userId', '=', user.id)
+      .execute();
+
+    logEvent('password_reset_completed', { userId: user.id });
   }
 
   /**

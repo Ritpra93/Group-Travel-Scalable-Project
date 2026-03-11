@@ -37,6 +37,20 @@ router.post('/logout', asyncHandler(authController.logout.bind(authController)))
 router.post('/refresh', asyncHandler(authController.refresh.bind(authController)));
 
 /**
+ * @route   POST /api/v1/auth/forgot-password
+ * @desc    Request a password reset link
+ * @access  Public
+ */
+router.post('/forgot-password', asyncHandler(authController.forgotPassword.bind(authController)));
+
+/**
+ * @route   POST /api/v1/auth/reset-password
+ * @desc    Reset password using a valid reset token
+ * @access  Public
+ */
+router.post('/reset-password', asyncHandler(authController.resetPassword.bind(authController)));
+
+/**
  * @route   GET /api/v1/auth/me
  * @desc    Get current authenticated user
  * @access  Private (requires authentication)
