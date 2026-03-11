@@ -35,7 +35,9 @@ export function createApp(): Application {
   // ============================================================================
 
   // Helmet - Security headers
-  app.use(helmet());
+  app.use(helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  }));
 
   // CORS - Cross-Origin Resource Sharing
   app.use(

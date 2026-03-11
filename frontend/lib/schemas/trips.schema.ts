@@ -37,7 +37,6 @@ export const createTripSchema = z
       .min(0, 'Budget must be a positive number')
       .optional()
       .or(z.nan()),
-    imageUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
   })
   .refine((data) => new Date(data.endDate) >= new Date(data.startDate), {
     message: 'End date must be after start date',
@@ -73,7 +72,6 @@ export const updateTripSchema = z
       .min(0, 'Budget must be a positive number')
       .optional()
       .or(z.nan()),
-    imageUrl: z.string().url('Must be a valid URL').optional().or(z.literal('')),
     status: z.enum(['PLANNING', 'CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
   })
   .refine(

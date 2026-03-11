@@ -18,6 +18,8 @@ import {
 } from '@/lib/schemas/trips.schema';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { ImageUpload } from '@/components/ui/image-upload';
+import { uploadsService } from '@/lib/api/services/uploads.service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 // ============================================================================
@@ -33,6 +35,7 @@ const STEPS = [
 export default function CreateTripPage() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string | undefined>();
 
   const { mutate: createTrip, isPending, error } = useCreateTrip();
   const { data: groupsData } = useGroups();
@@ -83,7 +86,20 @@ export default function CreateTripPage() {
   };
 
   const onSubmit = (data: CreateTripFormData) => {
-    createTrip(data);
+    const tripData = uploadedImageUrl
+      ? { ...data, imageUrl: uploadedImageUrl }
+      : data;
+    createTrip(tripData as any);
+  };
+
+  const handleImageUpload = async (file: File): Promise<string> => {
+    const result = await uploadsService.uploadImage(file);
+    setUploadedImageUrl(result.url);
+    return result.url;
+  };
+
+  const handleImageRemove = () => {
+    setUploadedImageUrl(undefined);
   };
 
   return (
@@ -207,14 +223,18 @@ export default function CreateTripPage() {
                   )}
                 </div>
 
-                <Input
-                  label="Image URL"
-                  placeholder="https://images.unsplash.com/..."
-                  type="url"
-                  helperText="Optional: Add a cover image for your trip"
-                  error={errors.imageUrl?.message}
-                  {...register('imageUrl')}
-                />
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-medium text-brown">
+                    Cover Image
+                    <span className="text-stone-400 font-normal ml-1">(optional)</span>
+                  </label>
+                  <ImageUpload
+                    value={uploadedImageUrl}
+                    onChange={(url) => setUploadedImageUrl(url)}
+                    onUpload={handleImageUpload}
+                    placeholder="Drag & drop or click to upload a cover image"
+                  />
+                </div>
               </div>
             )}
 
