@@ -8,6 +8,7 @@
 import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { isValidImageUrl, isLocalUrl } from '@/lib/utils/image-url';
 import {
   ArrowLeft,
   Users,
@@ -106,7 +107,7 @@ export default function GroupDetailPage({
     <div>
       {/* Hero Cover Image */}
       <div className="relative h-[50vh] w-full overflow-hidden -ml-[70px] lg:-ml-64">
-        {group.imageUrl ? (
+        {group.imageUrl && isValidImageUrl(group.imageUrl) ? (
           <Image
             src={group.imageUrl}
             alt={group.name}
@@ -115,6 +116,7 @@ export default function GroupDetailPage({
             sizes="100vw"
             priority
             quality={90}
+            unoptimized={isLocalUrl(group.imageUrl)}
           />
         ) : (
           <div className="absolute inset-0 bg-stone-100 flex items-center justify-center">

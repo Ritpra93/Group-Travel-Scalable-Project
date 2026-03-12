@@ -11,11 +11,12 @@ import { Plus, Vote, ArrowLeft, Filter } from 'lucide-react';
 import { useTrip } from '@/lib/api/hooks/use-trips';
 import {
   usePolls,
-  useCastVote,
-  useRemoveVote,
   useClosePoll,
   useDeletePoll,
+  pollsKeys,
 } from '@/lib/api/hooks/use-polls';
+import { pollsService } from '@/lib/api/services/polls.service';
+import { useQueryClient } from '@tanstack/react-query';
 import { useTripSocket } from '@/lib/socket';
 import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -42,8 +43,7 @@ export default function PollsPage({ params }: PollsPageProps) {
   });
 
   // Mutations
-  const castVote = useCastVote('', tripId);
-  const removeVote = useRemoveVote('', tripId);
+  const queryClient = useQueryClient();
   const closePoll = useClosePoll(tripId);
   const deletePoll = useDeletePoll(tripId);
 
@@ -56,8 +56,11 @@ export default function PollsPage({ params }: PollsPageProps) {
   const handleVote = async (pollId: string, optionId: string) => {
     setVotingPollId(pollId);
     try {
-      // Create a new hook instance for this specific poll
-      await castVote.mutateAsync(optionId);
+      await pollsService.castVote(pollId, optionId);
+      queryClient.invalidateQueries({ queryKey: pollsKeys.detail(pollId) });
+      queryClient.invalidateQueries({ queryKey: pollsKeys.results(pollId) });
+      queryClient.invalidateQueries({ queryKey: pollsKeys.myVotes(pollId) });
+      queryClient.invalidateQueries({ queryKey: pollsKeys.list(tripId) });
     } finally {
       setVotingPollId(null);
     }
@@ -66,7 +69,11 @@ export default function PollsPage({ params }: PollsPageProps) {
   const handleRemoveVote = async (pollId: string, optionId: string) => {
     setVotingPollId(pollId);
     try {
-      await removeVote.mutateAsync(optionId);
+      await pollsService.removeVote(pollId, optionId);
+      queryClient.invalidateQueries({ queryKey: pollsKeys.detail(pollId) });
+      queryClient.invalidateQueries({ queryKey: pollsKeys.results(pollId) });
+      queryClient.invalidateQueries({ queryKey: pollsKeys.myVotes(pollId) });
+      queryClient.invalidateQueries({ queryKey: pollsKeys.list(tripId) });
     } finally {
       setVotingPollId(null);
     }

@@ -85,6 +85,7 @@ export function PollFormSettings({
           <Input
             type="datetime-local"
             {...register('closesAt')}
+            min={new Date().toISOString().slice(0, 16)}
             error={errors.closesAt?.message as string | undefined}
           />
           <p className="text-xs text-zinc-500 mt-1">

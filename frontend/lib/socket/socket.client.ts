@@ -18,6 +18,7 @@ let socket: TypedSocket | null = null;
  * Connection state
  */
 let isConnecting = false;
+let disconnectInProgress = false;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_ATTEMPTS = 5;
 
@@ -116,10 +117,15 @@ export function connectSocket(): TypedSocket | null {
  * Disconnect from the socket server
  */
 export function disconnectSocket(): void {
-  if (socket) {
-    console.log('[Socket] Disconnecting');
+  if (disconnectInProgress || !socket) return;
+
+  disconnectInProgress = true;
+  console.log('[Socket] Disconnecting');
+  try {
     socket.disconnect();
     socket = null;
+  } finally {
+    disconnectInProgress = false;
   }
   isConnecting = false;
   reconnectAttempts = 0;

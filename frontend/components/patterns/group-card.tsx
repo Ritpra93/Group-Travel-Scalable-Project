@@ -10,6 +10,7 @@ import Image from 'next/image';
 import { Users, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import type { Group } from '@/types/models.types';
+import { isValidImageUrl, isLocalUrl } from '@/lib/utils/image-url';
 
 // ============================================================================
 // Group Card Component
@@ -34,13 +35,14 @@ export function GroupCard({ group }: GroupCardProps) {
       <Card clickable hover className="h-full overflow-hidden group border border-stone-200/50">
         {/* Hero Image with Overlay Text */}
         <div className="relative h-56 w-full overflow-hidden">
-          {group.imageUrl ? (
+          {group.imageUrl && isValidImageUrl(group.imageUrl) ? (
             <Image
               src={group.imageUrl}
               alt={group.name}
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 50vw"
+              unoptimized={isLocalUrl(group.imageUrl)}
             />
           ) : (
             <div className="absolute inset-0 bg-stone-100 flex items-center justify-center">

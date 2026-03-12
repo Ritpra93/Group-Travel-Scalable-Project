@@ -11,6 +11,7 @@ import { MapPin, Calendar, DollarSign, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import type { Trip } from '@/types';
 import { TripStatus } from '@/types';
+import { isValidImageUrl, isLocalUrl } from '@/lib/utils/image-url';
 
 // ============================================================================
 // Trip Card Component
@@ -57,13 +58,14 @@ export function TripCard({ trip }: TripCardProps) {
       <Card data-testid="content-card" clickable hover className="h-full overflow-hidden group border border-zinc-200/50">
         {/* Hero Image with Overlay Text */}
         <div className="relative h-72 w-full overflow-hidden">
-          {trip.imageUrl ? (
+          {trip.imageUrl && isValidImageUrl(trip.imageUrl) ? (
             <Image
               src={trip.imageUrl}
               alt={trip.name}
               fill
               className="object-cover transition-transform duration-700 group-hover:scale-105"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 50vw"
+              unoptimized={isLocalUrl(trip.imageUrl)}
             />
           ) : (
             <div className="absolute inset-0 bg-zinc-100 flex items-center justify-center">

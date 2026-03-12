@@ -103,6 +103,9 @@ export default function AppLayout({ children }: { children: ReactNode }) {
             <NavLink href="/dashboard" icon={LayoutGrid}>
               Dashboard
             </NavLink>
+            <NavLink href="/trips" icon={Map}>
+              Trips
+            </NavLink>
             <NavLink href="/groups" icon={Users}>
               Groups
             </NavLink>

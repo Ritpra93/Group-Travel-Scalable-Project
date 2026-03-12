@@ -113,7 +113,9 @@ export function PollForm({
         label: opt.label,
         description: opt.description?.trim() || undefined,
       })),
-      closesAt: data.closesAt?.trim() || undefined,
+      closesAt: data.closesAt?.trim()
+        ? new Date(data.closesAt).toISOString()
+        : undefined,
       description: data.description?.trim() || undefined,
       maxVotes: data.allowMultiple && data.maxVotes ? data.maxVotes : undefined,
     };

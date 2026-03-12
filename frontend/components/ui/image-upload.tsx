@@ -217,7 +217,7 @@ export function ImageUpload({
             alt="Preview"
             fill
             className="object-cover"
-            unoptimized={displayUrl.startsWith('blob:')}
+            unoptimized={displayUrl.startsWith('blob:') || displayUrl.includes('localhost') || displayUrl.includes('127.0.0.1')}
           />
         )}
 

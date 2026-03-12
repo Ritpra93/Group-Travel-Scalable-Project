@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { MapPin, Plus, Compass } from 'lucide-react';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { Button } from '@/components/ui/button';
+import { isValidImageUrl, isLocalUrl } from '@/lib/utils/image-url';
 
 export interface FeaturedTripHeroProps {
   trip: {
@@ -47,11 +48,12 @@ export function FeaturedTripHero({ trip, weather }: FeaturedTripHeroProps) {
 
       {/* Hero Image */}
       <Image
-        src={trip.imageUrl || DEFAULT_TRIP_IMAGE}
+        src={trip.imageUrl && isValidImageUrl(trip.imageUrl) ? trip.imageUrl : DEFAULT_TRIP_IMAGE}
         alt={trip.name}
         fill
         className="object-cover opacity-90 transition-transform duration-1000 group-hover:scale-105"
         priority
+        unoptimized={trip.imageUrl ? isLocalUrl(trip.imageUrl) : false}
       />
 
       {/* Bottom gradient overlay - Extended for better text visibility */}

@@ -9,6 +9,7 @@ import { use, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
+import { isValidImageUrl, isLocalUrl } from '@/lib/utils/image-url';
 import {
   ArrowLeft,
   MapPin,
@@ -164,13 +165,14 @@ export default function TripDetailPage({
 
       {/* 1. Hero Section - Cinematic & Clean */}
       <div className="relative h-[40vh] w-full group overflow-hidden -ml-[70px] lg:-ml-64">
-        {trip.imageUrl ? (
+        {trip.imageUrl && isValidImageUrl(trip.imageUrl) ? (
           <Image
             src={trip.imageUrl}
             alt={trip.name}
             fill
             className="object-cover transition-transform duration-700 group-hover:scale-105"
             priority
+            unoptimized={isLocalUrl(trip.imageUrl)}
           />
         ) : (
           <div className="absolute inset-0 bg-zinc-200 flex items-center justify-center">

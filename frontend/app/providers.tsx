@@ -47,8 +47,9 @@ export function Providers({ children }: { children: ReactNode }) {
       <AuthGuard>
         {children}
       </AuthGuard>
-      {/* React Query Devtools - only in development */}
-      {process.env.NODE_ENV === 'development' && (
+      {/* React Query Devtools - only in development, can be disabled via env var */}
+      {process.env.NODE_ENV === 'development' &&
+       process.env.NEXT_PUBLIC_DISABLE_DEVTOOLS !== 'true' && (
         <ReactQueryDevtools initialIsOpen={false} position="bottom" />
       )}
     </QueryClientProvider>
