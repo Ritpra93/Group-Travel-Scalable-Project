@@ -107,8 +107,10 @@ export function PollCard({
 
   const isActive = poll.status === 'ACTIVE';
   const userVotes = poll.userVotes || [];
-  const canVote = isActive && (!poll.allowMultiple ? userVotes.length === 0 : true);
-  const maxVotesReached = poll.maxVotes && userVotes.length >= poll.maxVotes;
+  // For single-choice polls: allow clicking to change vote even after voting
+  const canVote = isActive;
+  const maxVotesReached =
+    poll.allowMultiple && poll.maxVotes ? userVotes.length >= poll.maxVotes : false;
 
   const timeRemaining = formatTimeRemaining(poll.closesAt);
   const statusBadge = getStatusBadge(poll.status);
@@ -121,7 +123,8 @@ export function PollCard({
 
     if (hasVotedForThis && onRemoveVote) {
       onRemoveVote(optionId);
-    } else if (!hasVotedForThis && canVote && !maxVotesReached) {
+    } else if (!hasVotedForThis && !maxVotesReached) {
+      // For single-choice polls, the parent handles changeVote vs castVote
       onVote(optionId);
     }
   };
@@ -214,12 +217,12 @@ export function PollCard({
               key={option.id}
               type="button"
               onClick={() => handleOptionClick(option.id)}
-              disabled={!isActive || isVoting || (!canVote && !hasVotedForThis)}
+              disabled={!isActive || isVoting || (maxVotesReached && !hasVotedForThis)}
               className={cn(
                 'w-full p-3 rounded-lg border-2 text-left transition-all relative overflow-hidden',
                 hasVotedForThis
                   ? 'border-zinc-900 bg-zinc-50'
-                  : isActive && canVote && !maxVotesReached
+                  : isActive && !maxVotesReached
                     ? 'border-zinc-200 hover:border-zinc-300 cursor-pointer'
                     : 'border-zinc-200 cursor-default'
               )}
