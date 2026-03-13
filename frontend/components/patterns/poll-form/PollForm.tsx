@@ -1,14 +1,10 @@
 /**
  * PollForm Component
- * Multi-step form for creating and editing polls
- *
- * This is the main orchestrator component that manages form state
- * and renders the appropriate step component.
+ * Single-page form for creating polls
  */
 
 'use client';
 
-import { useState } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { cn } from '@/lib/utils/cn';
@@ -42,17 +38,15 @@ export function PollForm({
   isSubmitting = false,
   className,
 }: PollFormProps) {
-  const [step, setStep] = useState(1);
-
   const {
     register,
     handleSubmit,
     control,
     watch,
     setValue,
-    trigger,
     formState: { errors },
   } = useForm({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     resolver: zodResolver(createPollSchema) as any,
     defaultValues: {
       title: '',
@@ -66,7 +60,7 @@ export function PollForm({
         { label: '', description: '' },
       ],
     },
-    mode: 'onChange',
+    mode: 'onSubmit',
   });
 
   const fieldArray = useFieldArray({
@@ -78,35 +72,7 @@ export function PollForm({
   const allowMultiple = watch('allowMultiple');
   const options = watch('options');
 
-  // Step validation
-  const validateStep = async (stepNum: number): Promise<boolean> => {
-    const fieldsToValidate =
-      stepNum === 1
-        ? (['title', 'type'] as const)
-        : stepNum === 2
-          ? (['options'] as const)
-          : [];
-
-    if (fieldsToValidate.length === 0) return true;
-    const result = await trigger(fieldsToValidate as any);
-    return result;
-  };
-
-  const handleNext = async () => {
-    const isValid = await validateStep(step);
-    if (isValid && step < 3) {
-      setStep(step + 1);
-    }
-  };
-
-  const handleBack = () => {
-    if (step > 1) {
-      setStep(step - 1);
-    }
-  };
-
   const onFormSubmit = (data: CreatePollFormData) => {
-    // Filter out empty option descriptions
     const cleanedData = {
       ...data,
       options: data.options.map((opt) => ({
@@ -126,86 +92,38 @@ export function PollForm({
   return (
     <form
       onSubmit={handleSubmit(onFormSubmit)}
-      className={cn('space-y-6', className)}
+      className={cn('space-y-8', className)}
     >
-      {/* Progress Steps */}
-      <div className="flex items-center justify-center gap-2 mb-8">
-        {[1, 2, 3].map((s) => (
-          <div key={s} className="flex items-center">
-            <div
-              className={cn(
-                'w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors',
-                s === step
-                  ? 'bg-zinc-900 text-white'
-                  : s < step
-                    ? 'bg-emerald-500 text-white'
-                    : 'bg-zinc-100 text-zinc-400'
-              )}
-            >
-              {s < step ? '✓' : s}
-            </div>
-            {s < 3 && (
-              <div
-                className={cn(
-                  'w-12 h-0.5 mx-1',
-                  s < step ? 'bg-emerald-500' : 'bg-zinc-200'
-                )}
-              />
-            )}
-          </div>
-        ))}
-      </div>
+      {/* Poll Details */}
+      <PollFormDetails
+        register={register}
+        setValue={setValue}
+        errors={errors}
+        pollType={pollType}
+      />
 
-      {/* Step 1: Poll Details */}
-      {step === 1 && (
-        <PollFormDetails
-          register={register}
-          setValue={setValue}
-          errors={errors}
-          pollType={pollType}
-        />
-      )}
+      {/* Options */}
+      <PollFormOptions
+        register={register}
+        errors={errors}
+        fieldArray={fieldArray}
+      />
 
-      {/* Step 2: Options */}
-      {step === 2 && (
-        <PollFormOptions
-          register={register}
-          errors={errors}
-          fieldArray={fieldArray}
-        />
-      )}
+      {/* Settings */}
+      <PollFormSettings
+        register={register}
+        watch={watch}
+        errors={errors}
+        pollType={pollType}
+        allowMultiple={allowMultiple}
+        options={options}
+      />
 
-      {/* Step 3: Settings */}
-      {step === 3 && (
-        <PollFormSettings
-          register={register}
-          watch={watch}
-          errors={errors}
-          pollType={pollType}
-          allowMultiple={allowMultiple}
-          options={options}
-        />
-      )}
-
-      {/* Navigation */}
-      <div className="flex justify-between gap-4">
-        {step > 1 ? (
-          <Button type="button" variant="outline" onClick={handleBack}>
-            Back
-          </Button>
-        ) : (
-          <div />
-        )}
-
-        {step < 3 ? (
-          <Button type="button" onClick={handleNext}>
-            Continue
-          </Button>
-        ) : (
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Creating Poll...' : 'Create Poll'}
-          </Button>
-        )}
+      {/* Submit */}
+      <div className="flex justify-end">
+        <Button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Creating Poll...' : 'Create Poll'}
+        </Button>
       </div>
     </form>
   );

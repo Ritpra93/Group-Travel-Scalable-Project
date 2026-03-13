@@ -53,14 +53,35 @@ export default function PollsPage({ params }: PollsPageProps) {
   // Track which poll is currently being voted on
   const [votingPollId, setVotingPollId] = useState<string | null>(null);
 
+  const [voteError, setVoteError] = useState<string | null>(null);
+
+  const invalidatePollQueries = (pollId: string) => {
+    queryClient.invalidateQueries({ queryKey: pollsKeys.detail(pollId) });
+    queryClient.invalidateQueries({ queryKey: pollsKeys.results(pollId) });
+    queryClient.invalidateQueries({ queryKey: pollsKeys.myVotes(pollId) });
+    // Use lists() prefix to match all list queries regardless of filter params
+    queryClient.invalidateQueries({ queryKey: pollsKeys.lists() });
+  };
+
   const handleVote = async (pollId: string, optionId: string) => {
     setVotingPollId(pollId);
+    setVoteError(null);
     try {
-      await pollsService.castVote(pollId, optionId);
-      queryClient.invalidateQueries({ queryKey: pollsKeys.detail(pollId) });
-      queryClient.invalidateQueries({ queryKey: pollsKeys.results(pollId) });
-      queryClient.invalidateQueries({ queryKey: pollsKeys.myVotes(pollId) });
-      queryClient.invalidateQueries({ queryKey: pollsKeys.list(tripId) });
+      const poll = polls.find((p) => p.id === pollId);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const userVotes: string[] = (poll as any)?.userVotes || [];
+
+      if (!poll?.allowMultiple && userVotes.length > 0) {
+        // Single-choice poll, user already voted — change vote
+        await pollsService.changeVote(pollId, userVotes[0], optionId);
+      } else {
+        await pollsService.castVote(pollId, optionId);
+      }
+      invalidatePollQueries(pollId);
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: { message?: string } } }; message?: string };
+      const message = err?.response?.data?.error?.message || err?.message || 'Failed to vote';
+      setVoteError(message);
     } finally {
       setVotingPollId(null);
     }
@@ -68,14 +89,22 @@ export default function PollsPage({ params }: PollsPageProps) {
 
   const handleRemoveVote = async (pollId: string, optionId: string) => {
     setVotingPollId(pollId);
+    setVoteError(null);
     try {
       await pollsService.removeVote(pollId, optionId);
-      queryClient.invalidateQueries({ queryKey: pollsKeys.detail(pollId) });
-      queryClient.invalidateQueries({ queryKey: pollsKeys.results(pollId) });
-      queryClient.invalidateQueries({ queryKey: pollsKeys.myVotes(pollId) });
-      queryClient.invalidateQueries({ queryKey: pollsKeys.list(tripId) });
+      invalidatePollQueries(pollId);
+    } catch (error: unknown) {
+      const err = error as { response?: { data?: { error?: { message?: string } } }; message?: string };
+      const message = err?.response?.data?.error?.message || err?.message || 'Failed to remove vote';
+      setVoteError(message);
     } finally {
       setVotingPollId(null);
+    }
+  };
+
+  const handleDelete = (pollId: string) => {
+    if (window.confirm('Are you sure you want to delete this poll? This cannot be undone.')) {
+      deletePoll.mutate(pollId);
     }
   };
 
@@ -113,6 +142,19 @@ export default function PollsPage({ params }: PollsPageProps) {
           </Button>
         </Link>
       </div>
+
+      {/* Vote Error */}
+      {voteError && (
+        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-center justify-between">
+          <p className="text-sm text-red-600">{voteError}</p>
+          <button
+            onClick={() => setVoteError(null)}
+            className="text-red-400 hover:text-red-600 text-sm font-medium"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex items-center gap-2 mb-6">
@@ -169,7 +211,7 @@ export default function PollsPage({ params }: PollsPageProps) {
               onVote={(optionId) => handleVote(poll.id, optionId)}
               onRemoveVote={(optionId) => handleRemoveVote(poll.id, optionId)}
               onClose={() => closePoll.mutate(poll.id)}
-              onDelete={() => deletePoll.mutate(poll.id)}
+              onDelete={() => handleDelete(poll.id)}
               isVoting={votingPollId === poll.id}
               canManage={true} // TODO: Check actual permissions
             />
